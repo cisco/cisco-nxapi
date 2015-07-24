@@ -299,6 +299,9 @@ module CiscoNxapi
         # Examples: "Invalid input", "Incomplete command", etc.
         fail CliError.new(command, output['msg'], output['code'],
                           output['clierror'], prev_cmds)
+      elsif output['code'] == '413'
+        # Request too large
+        fail NxapiError.new("Error 413: #{output['msg']}")
       elsif output['code'] == '501'
         # if structured output is not supported for this command,
         # raise an exception so that the calling function can

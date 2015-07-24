@@ -1,3 +1,11 @@
+Changelog
+=========
+
+(unreleased)
+------------
+
+* Recognize and handle NXAPI error code 413 (request too large).
+
 0.9.0
 -----
 
