@@ -92,6 +92,11 @@ module CiscoNxapi
         # In this case, a username and password are mandatory
         fail TypeError if username.nil? || password.nil?
       end
+      # The default read time out is 60 seconds, which may be too short for
+      # scaled configuration to apply. Change it to 300 seconds, which is
+      # also used as the default config by firefox.
+      @http.read_timeout = 300
+
       unless username.nil?
         fail TypeError, 'invalid username' unless username.is_a?(String)
         fail ArgumentError, 'empty username' unless username.length > 0
@@ -299,6 +304,9 @@ module CiscoNxapi
         # Examples: "Invalid input", "Incomplete command", etc.
         fail CliError.new(command, output['msg'], output['code'],
                           output['clierror'], prev_cmds)
+      elsif output['code'] == '413'
+        # Request too large
+        fail NxapiError.new("Error 413: #{output['msg']}")
       elsif output['code'] == '501'
         # if structured output is not supported for this command,
         # raise an exception so that the calling function can
