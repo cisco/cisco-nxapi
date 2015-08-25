@@ -1,9 +1,10 @@
 Changelog
 =========
 
-(unreleased)
-------------
+1.0.0
+-----
 
+* Change the http read timeout from default 60 seconds to 300 seconds.
 * Recognize and handle NXAPI error code 413 (request too large).
 
 0.9.0
