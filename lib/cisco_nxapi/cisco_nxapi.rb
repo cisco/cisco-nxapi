@@ -92,6 +92,11 @@ module CiscoNxapi
         # In this case, a username and password are mandatory
         fail TypeError if username.nil? || password.nil?
       end
+      # The default read time out is 60 seconds, which may be too short for
+      # scaled configuration to apply. Change it to 300 seconds, which is
+      # also used as the default config by firefox.
+      @http.read_timeout = 300
+
       unless username.nil?
         fail TypeError, 'invalid username' unless username.is_a?(String)
         fail ArgumentError, 'empty username' unless username.length > 0
