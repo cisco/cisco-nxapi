@@ -22,10 +22,13 @@ require File.join(File.dirname(__FILE__), 'cisco_logger')
 include CiscoLogger
 require 'net/http'
 
+# Namespace for all NXAPI-related functionality and classes.
 module CiscoNxapi
+  # NxapiError is an abstract parent class for all errors raised by this module
   class NxapiError < RuntimeError
   end
 
+  # CliError indicates that the node rejected the CLI as invalid.
   class CliError < NxapiError
     attr_reader :input, :msg, :code, :clierror, :previous
     def initialize(input, msg, code, clierror, previous)
@@ -45,15 +48,20 @@ module CiscoNxapi
     end
   end
 
+  # RequestNotSupported means we requested structured output for a CLI
+  # that doesn't currently support structured output
   class RequestNotSupported < NxapiError
   end
 
+  # ConnectionRefused means the NXAPI server isn't listening
   class ConnectionRefused < NxapiError
   end
 
+  # HTTPBadRequest means we did something wrong in our request
   class HTTPBadRequest < NxapiError
   end
 
+  # HTTPUnauthorized means we provided incorrect credentials
   class HTTPUnauthorized < NxapiError
   end
 
@@ -66,11 +74,12 @@ module CiscoNxapi
   # Latest supported version is 1.0
   NXAPI_VERSION = '1.0'
 
+  # Class representing an HTTP client connecting to a NXAPI server.
   class NxapiClient
     # Constructor for NxapiClient. By default this connects to the local
     # unix domain socket. If you need to connect to a remote device,
     # you must provide the address/username/password parameters.
-    def initialize(address = nil, username = nil, password = nil)
+    def initialize(address=nil, username=nil, password=nil)
       # Default: connect to unix domain socket on localhost, if available
       if address.nil?
         if File.socket?(NXAPI_UDS)
@@ -146,9 +155,9 @@ module CiscoNxapi
     # to explicitly force the cache to be cleared.
     def cache_flush
       @cache_hash = {
-        'cli_conf' => {},
-        'cli_show' => {},
-        'cli_show_ascii' => {}
+        'cli_conf'       => {},
+        'cli_show'       => {},
+        'cli_show_ascii' => {},
       }
     end
 
@@ -200,7 +209,7 @@ module CiscoNxapi
     #             Default is :ascii
     # @return [String] the output of the show command, if type == :ascii
     # @return [Hash{String=>String}] key-value pairs, if type == :structured
-    def show(command, type = :ascii)
+    def show(command, type=:ascii)
       if type == :ascii
         return req('cli_show_ascii', command)
       elsif type == :structured
@@ -240,17 +249,17 @@ module CiscoNxapi
       request.content_type = 'application/json'
       request.body = {
         'ins_api' => {
-          'version' => NXAPI_VERSION,
-          'type' => "#{type}",
-          'chunk' => '0',
-          'sid' => '1',
-          'input' => "#{command}",
-          'output_format' => 'json'
-        }
+          'version'       => NXAPI_VERSION,
+          'type'          => "#{type}",
+          'chunk'         => '0',
+          'sid'           => '1',
+          'input'         => "#{command}",
+          'output_format' => 'json',
+        },
       }.to_json
 
       # send the request and get the response
-      debug("Sending HTTP request to NX-API at #{@http.address}:\n" +
+      debug("Sending HTTP request to NX-API at #{@http.address}:\n" \
             "#{request.to_hash}\n#{request.body}")
       begin
         response = @http.request(request)
@@ -306,13 +315,13 @@ module CiscoNxapi
                           output['clierror'], prev_cmds)
       elsif output['code'] == '413'
         # Request too large
-        fail NxapiError.new("Error 413: #{output['msg']}")
+        fail NxapiError, "Error 413: #{output['msg']}"
       elsif output['code'] == '501'
         # if structured output is not supported for this command,
         # raise an exception so that the calling function can
         # handle accordingly
-        fail RequestNotSupported.new(
-          "Structured output not supported for #{command}")
+        fail RequestNotSupported, \
+             "Structured output not supported for #{command}"
       else
         debug("Result for '#{command}': #{output['msg']}")
         if output['body'] && !output['body'].empty?

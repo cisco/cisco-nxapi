@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Add version number to CiscoNxapi namespace
 module CiscoNxapi
   VERSION = '1.0.0'
 end

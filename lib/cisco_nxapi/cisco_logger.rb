@@ -19,14 +19,16 @@
 
 require 'logger'
 
+# Module for logging in CiscoNxapi and CiscoNodeUtils. Will automatically
+# tie into Puppet or Chef logging modules if available.
 module CiscoLogger
-  extend self
+  module_function
 
   # Figure out what provider logging utility we
   # should use: Puppet or Chef.
   # If not found use the Ruby Logger/STDOUT/INFO.
   if defined? (Puppet)
-    @@logger = Puppet
+    @@logger = Puppet # rubocop:disable Style/ClassVars
     def error(string)
       @@logger.err(string)
     end
@@ -36,9 +38,9 @@ module CiscoLogger
     end
   else
     if defined? (Chef::Log)
-      @@logger = Chef::Log
+      @@logger = Chef::Log # rubocop:disable Style/ClassVars
     else
-      @@logger = Logger.new(STDOUT)
+      @@logger = Logger.new(STDOUT) # rubocop:disable Style/ClassVars
       @@logger.level = Logger::INFO
 
       def debug_enable

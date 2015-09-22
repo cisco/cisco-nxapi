@@ -1,3 +1,40 @@
 # Rubocop configuration file
 
-inherit_from: .rubocop_todo.yml
+# Baseline code complexity metrics - we should try and reduce these over time
+Metrics/AbcSize:
+  Max: 49
+
+Metrics/ClassLength:
+  Max: 165
+
+Metrics/CyclomaticComplexity:
+  Max: 13
+
+Metrics/MethodLength:
+  Max: 55
+
+Metrics/PerceivedComplexity:
+  Max: 16
+
+# Team preferences different from Rubocop defaults:
+Style/AlignHash:
+  EnforcedHashRocketStyle: table
+  EnforcedColonStyle: table
+
+Style/ClassCheck:
+  Enabled: false
+
+Style/FormatString:
+  EnforcedStyle: sprintf
+
+Style/HashSyntax:
+  EnforcedStyle: ruby19_no_mixed_keys
+
+Style/SpaceAroundEqualsInParameterDefault:
+  EnforcedStyle: no_space
+
+Style/TrailingComma:
+  EnforcedStyleForMultiline: comma
+
+Style/TrivialAccessors:
+  AllowPredicates: true

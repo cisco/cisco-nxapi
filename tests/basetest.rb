@@ -24,31 +24,36 @@ require 'net/telnet'
 require 'test/unit'
 require File.expand_path('../../lib/cisco_nxapi/cisco_logger', __FILE__)
 
+# TestCase - common base class for all minitest cases in this module.
 class TestCase < Test::Unit::TestCase
+  # rubocop:disable Style/ClassVars
   @@address = nil
   @@username = nil
   @@password = nil
+  # rubocop:enable Style/ClassVars
 
   def process_arguments
     if ARGV.length != 3 && ARGV.length != 4
       puts 'Usage:'
-      puts '  ruby test_nxapi.rb [options] -- <address> <username> <password> [debug]'
+      puts '  ruby test_nxapi.rb [options] -- ' \
+           '<address> <username> <password> [debug]'
       exit
     end
 
     # Record the version of Ruby we got invoked with.
     puts "\nRuby Version - #{RUBY_VERSION}"
 
+    # rubocop:disable Style/ClassVars
     @@address = ARGV[0]
     @@username = ARGV[1]
     @@password = ARGV[2]
-    if ARGV.length == 4
-      if ARGV[3] == 'debug'
-        CiscoLogger.debug_enable
-      else
-        puts "Only 'debug' is allowed"
-        exit
-      end
+    # rubocop:enable Style/ClassVars
+    return unless ARGV.length == 4
+    if ARGV[3] == 'debug'
+      CiscoLogger.debug_enable
+    else
+      puts "Only 'debug' is allowed"
+      exit
     end
   end
 

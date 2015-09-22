@@ -1,5 +1,3 @@
-# NXAPI Client Unit Tests
-#
 # November 2014, Glenn F. Matthews
 #
 # Copyright (c) 2014-2015 Cisco and/or its affiliates.
@@ -19,15 +17,16 @@
 require File.expand_path('../basetest', __FILE__)
 require File.expand_path('../../lib/cisco_nxapi/cisco_nxapi', __FILE__)
 
+# TestNxapi - NXAPI client unit tests
 class TestNxapi < TestCase
-  @@client = nil
+  @@client = nil # rubocop:disable Style/ClassVars
 
   def client
     unless @@client
       client = CiscoNxapi::NxapiClient.new(address, username, password)
       client.cache_enable = true
       client.cache_auto = true
-      @@client = client
+      @@client = client # rubocop:disable Style/ClassVars
     end
     @@client
   end
@@ -141,7 +140,7 @@ class TestNxapi < TestCase
     end
     # On the off chance that things behave differently when NXAPI is
     # disabled while we're connected, versus trying to connect afresh...
-    @@client = nil
+    @@client = nil # rubocop:disable Style/ClassVars
     assert_raises CiscoNxapi::ConnectionRefused do
       client.show('show version')
     end

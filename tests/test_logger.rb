@@ -1,5 +1,3 @@
-# Cisco Logger Unit Tests
-#
 # January 2015, Jie Yang
 #
 # Copyright (c) 2015 Cisco and/or its affiliates.
@@ -19,6 +17,7 @@
 require File.expand_path('../basetest', __FILE__)
 require File.expand_path('../../lib/cisco_nxapi/cisco_logger', __FILE__)
 
+# TestLogger - unit tests for CiscoLogger module
 class TestLogger < TestCase
   def test_logger_methods
     assert(defined?(CiscoLogger.debug), 'debug method not defined')

@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* Fixed all outstanding rubocop warnings.
+
 1.0.0
 -----
 
