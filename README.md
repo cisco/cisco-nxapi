@@ -1,5 +1,8 @@
 # CiscoNxapi - Cisco NX-API Utilities
 
+[![Gem Version](https://badge.fury.io/rb/cisco_nxapi.svg)](http://badge.fury.io/rb/cisco_nxapi)
+[![Build Status](https://travis-ci.org/cisco/cisco-nxapi.svg?branch=develop)](https://travis-ci.org/cisco/cisco-nxapi)
+
 The CiscoNxapi gem provides utilities for communicating with Cisco network
 nodes running NX-OS 7.0(3)I2(1) and later via the NX-API management API.
 
