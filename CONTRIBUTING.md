@@ -16,8 +16,9 @@ Cisco Network Elements support a rich set of features to make networks robust, e
   * Run all the tests to ensure there was no collateral damage to existing code
 * Committing
   * Check for unnecessary whitespace with `git diff --check` before committing.
-  * Run `rubocop --lint` against all changed files. See [https://rubygems.org/gems/rubocop](https://rubygems.org/gems/rubocop)
+  * Run `rubocop` against all changed files. See [https://rubygems.org/gems/rubocop](https://rubygems.org/gems/rubocop)
   * Make sure your commit messages clearly describe the problem you are trying to solve and the proposed solution.
+  * Be sure to update CHANGELOG.md as well.
 
 ## Submitting Changes
 

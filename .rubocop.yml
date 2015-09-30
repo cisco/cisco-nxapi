@@ -2,10 +2,10 @@
 
 # Baseline code complexity metrics - we should try and reduce these over time
 Metrics/AbcSize:
-  Max: 49
+  Max: 43
 
 Metrics/ClassLength:
-  Max: 165
+  Max: 171
 
 Metrics/CyclomaticComplexity:
   Max: 13
@@ -14,7 +14,7 @@ Metrics/MethodLength:
   Max: 55
 
 Metrics/PerceivedComplexity:
-  Max: 16
+  Max: 15
 
 # Team preferences different from Rubocop defaults:
 Style/AlignHash:

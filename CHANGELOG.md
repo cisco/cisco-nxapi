@@ -4,6 +4,7 @@ Changelog
 Unreleased
 ----------
 
+* Better handling of empty output from cli_show_ascii requests (@hunner).
 * Fixed all outstanding rubocop warnings.
 
 1.0.0

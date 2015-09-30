@@ -248,24 +248,7 @@ module CiscoNxapi
       end
 
       # form the request
-      if !(@username.nil? || @password.nil?)
-        request = Net::HTTP::Post.new(NXAPI_REMOTE_URI_PATH)
-        request.basic_auth("#{@username}", "#{@password}")
-      else
-        request = Net::HTTP::Post.new(NXAPI_UDS_URI_PATH)
-        request['Cookie'] = 'nxapi_auth=admin:local'
-      end
-      request.content_type = 'application/json'
-      request.body = {
-        'ins_api' => {
-          'version'       => NXAPI_VERSION,
-          'type'          => "#{type}",
-          'chunk'         => '0',
-          'sid'           => '1',
-          'input'         => "#{command}",
-          'output_format' => 'json',
-        },
-      }.to_json
+      request = build_http_request(type, command)
 
       # send the request and get the response
       debug("Sending HTTP request to NX-API at #{@http.address}:\n" \
@@ -292,26 +275,41 @@ module CiscoNxapi
           handle_output(prev_cmds, cmd, o)
           prev_cmds << cmd
         end
-        output = output.collect do |o|
-          if type == 'cli_show_ascii' && o['body'].empty?
-            ''
-          else
-            o['body']
-          end
-        end
+        output = output.each { |o| o['body'] }
       else
         handle_output(prev_cmds, command, output)
-        if type == 'cli_show_ascii' && output['body'].empty?
-          output = ''
-        else
-          output = output['body']
-        end
+        output = output['body']
       end
+
+      output = '' if type == 'cli_show_ascii' && output.empty?
 
       @cache_hash[type][command] = output if cache_enable?
       output
     end
     private :req
+
+    def build_http_request(type, command_string)
+      if @username.nil? || @password.nil?
+        request = Net::HTTP::Post.new(NXAPI_UDS_URI_PATH)
+        request['Cookie'] = 'nxapi_auth=admin:local'
+      else
+        request = Net::HTTP::Post.new(NXAPI_REMOTE_URI_PATH)
+        request.basic_auth("#{@username}", "#{@password}")
+      end
+      request.content_type = 'application/json'
+      request.body = {
+        'ins_api' => {
+          'version'       => NXAPI_VERSION,
+          'type'          => "#{type}",
+          'chunk'         => '0',
+          'sid'           => '1',
+          'input'         => "#{command_string}",
+          'output_format' => 'json',
+        },
+      }.to_json
+      request
+    end
+    private :build_http_request
 
     def handle_http_response(response)
       debug("HTTP Response: #{response.message}\n#{response.body}")
