@@ -1,10 +1,12 @@
 # Rubocop configuration file
 
-# Auto-generated files
 AllCops:
   Exclude:
+    # Auto-generated files
     - lib/cisco_rpc/grpc/ems.rb
     - lib/cisco_rpc/grpc/ems_services.rb
+    # Files we don't own
+    - vendor/**/*
 
 # Baseline code complexity metrics - we should try and reduce these over time
 Metrics/AbcSize:
