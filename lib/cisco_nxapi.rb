@@ -12,6 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'cisco_nxapi/version'
-require 'cisco_nxapi/cisco_nxapi'
-require 'cisco_nxapi/cisco_logger'
+# Automatically load all Ruby files in the cisco_nxapi subdirectory
+Dir.glob(__dir__ + '/cisco_nxapi/*.rb') { |file| require file }

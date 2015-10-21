@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require File.expand_path('../basetest', __FILE__)
-require File.expand_path('../../lib/cisco_nxapi/cisco_logger', __FILE__)
+require_relative 'basetest'
+require_relative '../lib/cisco_nxapi/cisco_logger'
 
 # TestLogger - unit tests for CiscoLogger module
 class TestLogger < TestCase

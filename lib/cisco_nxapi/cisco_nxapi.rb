@@ -17,7 +17,7 @@
 # limitations under the License.
 
 require 'json'
-require File.join(File.dirname(__FILE__), 'cisco_logger')
+require_relative 'cisco_logger'
 
 include CiscoLogger
 require 'net/http'
