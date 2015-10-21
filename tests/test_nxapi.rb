@@ -15,7 +15,9 @@
 # limitations under the License.
 
 require_relative 'basetest'
-require_relative '../lib/cisco_rpc/cisco_nxapi'
+require_relative '../lib/cisco_rpc'
+
+include Cisco::RPC::NXAPI
 
 # TestNxapi - NXAPI client unit tests
 class TestNxapi < TestCase
@@ -23,7 +25,7 @@ class TestNxapi < TestCase
 
   def client
     unless @@client
-      client = CiscoNxapi::NxapiClient.new(address, username, password)
+      client = Client.new(address, username, password)
       client.cache_enable = true
       client.cache_auto = true
       @@client = client # rubocop:disable Style/ClassVars
@@ -48,7 +50,7 @@ class TestNxapi < TestCase
   end
 
   def test_config_invalid
-    e = assert_raises CiscoNxapi::CliError do
+    e = assert_raises CliError do
       client.config(['int et1/1', 'exit', 'int et1/2', 'plover'])
     end
     assert_equal('plover', e.input)
@@ -64,7 +66,7 @@ class TestNxapi < TestCase
   end
 
   def test_exec_invalid
-    e = assert_raises CiscoNxapi::CliError do
+    e = assert_raises CliError do
       client.exec('xyzzy')
     end
     assert_equal('xyzzy', e.input)
@@ -75,7 +77,7 @@ class TestNxapi < TestCase
   end
 
   def test_exec_too_long
-    assert_raises CiscoNxapi::NxapiError do
+    assert_raises NxapiError do
       client.exec('0' * 500_000)
     end
   end
@@ -87,13 +89,13 @@ class TestNxapi < TestCase
   end
 
   def test_show_ascii_invalid
-    assert_raises CiscoNxapi::CliError do
+    assert_raises CliError do
       client.show('show plugh')
     end
   end
 
   def test_element_show_ascii_incomplete
-    assert_raises CiscoNxapi::CliError do
+    assert_raises CliError do
       client.show('show ')
     end
   end
@@ -116,7 +118,7 @@ class TestNxapi < TestCase
   end
 
   def test_show_structured_invalid
-    assert_raises CiscoNxapi::CliError do
+    assert_raises CliError do
       client.show('show frobozz', :structured)
     end
   end
@@ -124,7 +126,7 @@ class TestNxapi < TestCase
   def test_show_structured_unsupported
     # TBD: n3k DOES support structured for this command,
     #  n9k DOES NOT support structured for this command
-    assert_raises CiscoNxapi::RequestNotSupported do
+    assert_raises RequestNotSupported do
       client.show('show snmp internal globals', :structured)
     end
   end
@@ -134,25 +136,25 @@ class TestNxapi < TestCase
     @device.cmd('no feature nxapi')
     @device.cmd('end')
     client.cache_flush
-    assert_raises CiscoNxapi::ConnectionRefused do
+    assert_raises ConnectionRefused do
       client.show('show version')
     end
-    assert_raises CiscoNxapi::ConnectionRefused do
+    assert_raises ConnectionRefused do
       client.exec('show version')
     end
-    assert_raises CiscoNxapi::ConnectionRefused do
+    assert_raises ConnectionRefused do
       client.config('interface Et1/1')
     end
     # On the off chance that things behave differently when NXAPI is
     # disabled while we're connected, versus trying to connect afresh...
     @@client = nil # rubocop:disable Style/ClassVars
-    assert_raises CiscoNxapi::ConnectionRefused do
+    assert_raises ConnectionRefused do
       client.show('show version')
     end
-    assert_raises CiscoNxapi::ConnectionRefused do
+    assert_raises ConnectionRefused do
       client.exec('show version')
     end
-    assert_raises CiscoNxapi::ConnectionRefused do
+    assert_raises ConnectionRefused do
       client.config('interface Et1/1')
     end
 
@@ -167,13 +169,13 @@ class TestNxapi < TestCase
     end
     client.password = 'wrong_password'
     client.cache_flush
-    assert_raises CiscoNxapi::HTTPUnauthorized do
+    assert_raises HTTPUnauthorized do
       client.show('show version')
     end
-    assert_raises CiscoNxapi::HTTPUnauthorized do
+    assert_raises HTTPUnauthorized do
       client.exec('show version')
     end
-    assert_raises CiscoNxapi::HTTPUnauthorized do
+    assert_raises HTTPUnauthorized do
       client.config('interface Et1/1')
     end
     client.password = password
@@ -185,7 +187,7 @@ class TestNxapi < TestCase
       req('hello', 'world')
     end
 
-    assert_raises CiscoNxapi::RequestNotSupported do
+    assert_raises RequestNotSupported do
       client.hello
     end
   end

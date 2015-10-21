@@ -18,12 +18,12 @@
 
 require 'json'
 require_relative 'cisco_logger'
-
-include CiscoLogger
 require 'net/http'
 
+include CiscoLogger
+
 # Namespace for all NXAPI-related functionality and classes.
-module CiscoNxapi
+module Cisco::RPC::NXAPI
   # NxapiError is an abstract parent class for all errors raised by this module
   class NxapiError < RuntimeError
   end
@@ -75,8 +75,8 @@ module CiscoNxapi
   NXAPI_VERSION = '1.0'
 
   # Class representing an HTTP client connecting to a NXAPI server.
-  class NxapiClient
-    # Constructor for NxapiClient. By default this connects to the local
+  class Client
+    # Constructor for Client. By default this connects to the local
     # unix domain socket. If you need to connect to a remote device,
     # you must provide the address/username/password parameters.
     def initialize(address=nil, username=nil, password=nil)
@@ -126,7 +126,7 @@ module CiscoNxapi
     end
 
     def inspect
-      "<NxapiClient of #{@http.address}>"
+      "<Cisco::RPC::NXAPI::Client of #{@http.address}>"
     end
 
     def reload
@@ -163,7 +163,7 @@ module CiscoNxapi
 
     # Configure the given command(s) on the device.
     #
-    # @raise [CiscoNxapi::CliError] if any command is rejected by the device
+    # @raise [CliError] if any command is rejected by the device
     #
     # @param commands [String, Array<String>] either of:
     #   1) The configuration sequence, as a newline-separated string
@@ -200,9 +200,9 @@ module CiscoNxapi
     # multiple calls to the same "show" command may return cached data
     # rather than querying the device repeatedly.
     #
-    # @raise [CiscoNxapi::RequestNotSupported] if
+    # @raise [RequestNotSupported] if
     #   structured output is requested but the given command can't provide it.
-    # @raise [CiscoNxapi::CliError] if the command is rejected by the device
+    # @raise [CliError] if the command is rejected by the device
     #
     # @param command [String] the show command to execute
     # @param type [:ascii, :structured] ASCII or structured output.
@@ -221,11 +221,11 @@ module CiscoNxapi
 
     # Sends a request to the NX API and returns the body of the request or
     # handles errors that happen.
-    # @raise CiscoNxapi::ConnectionRefused if NXAPI is disabled
-    # @raise CiscoNxapi::HTTPUnauthorized if username/password are invalid
-    # @raise CiscoNxapi::HTTPBadRequest (should never occur)
-    # @raise CiscoNxapi::RequestNotSupported
-    # @raise CiscoNxapi::CliError if any command is rejected as invalid
+    # @raise ConnectionRefused if NXAPI is disabled
+    # @raise HTTPUnauthorized if username/password are invalid
+    # @raise HTTPBadRequest (should never occur)
+    # @raise RequestNotSupported
+    # @raise CliError if any command is rejected as invalid
     #
     # @param type ["cli_show", "cli_show_ascii"] Specifies the type of command
     #             to be executed.
@@ -316,10 +316,10 @@ module CiscoNxapi
       case response
       when Net::HTTPUnauthorized
         emsg = 'HTTP 401 Unauthorized. Are your NX-API credentials correct?'
-        fail CiscoNxapi::HTTPUnauthorized, emsg
+        fail HTTPUnauthorized, emsg
       when Net::HTTPBadRequest
         emsg = "HTTP 400 Bad Request\n#{response.body}"
-        fail CiscoNxapi::HTTPBadRequest, emsg
+        fail HTTPBadRequest, emsg
       end
     end
     private :handle_http_response

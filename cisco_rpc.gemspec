@@ -5,7 +5,7 @@ require 'cisco_rpc/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'cisco_rpc'
-  spec.version       = CiscoNxapi::VERSION
+  spec.version       = Cisco::RPC::VERSION
   spec.authors       = ['Alex Hunsberger', 'Glenn Matthews',
                         'Chris Van Heuveln', 'Mike Wiebe', 'Jie Yang']
   spec.email         = 'cisco_agent_gem@cisco.com'

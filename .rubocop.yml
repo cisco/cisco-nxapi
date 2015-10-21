@@ -21,6 +21,9 @@ Style/AlignHash:
   EnforcedHashRocketStyle: table
   EnforcedColonStyle: table
 
+Style/ClassAndModuleChildren:
+  EnforcedStyle: compact
+
 Style/ClassCheck:
   Enabled: false
 

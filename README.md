@@ -31,7 +31,7 @@ included minitest suite).
 ```ruby
 require 'cisco_rpc'
 
-client = CiscoNxapi::NxapiClient.new()
+client = Cisco::RPC::NXAPI::Client.new()
 
 client.show("show version")
 
@@ -45,8 +45,8 @@ client.config(["interface ethernet1/1",
 ```ruby
 require 'cisco_rpc'
 
-client = CiscoNxapi::NxapiClient.new("n3k.mycompany.com",
-                                     "username", "password")
+client = Cisco::RPC::NXAPI::Client.new("n3k.mycompany.com",
+                                       "username", "password")
 
 client.show("show version")
 

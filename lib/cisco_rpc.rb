@@ -12,5 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Automatically load all Ruby files in the cisco_rpc subdirectory
+# Namespace for Cisco-specific code
+module Cisco
+end
+
+# Namespace for Cisco RPC code
+module Cisco::RPC
+end
+
+# Auto-load all Ruby files in the subdirectory
 Dir.glob(__dir__ + '/cisco_rpc/*.rb') { |file| require file }
