@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Make sure the module exists as the gemspec requires this file directly
-module Cisco
+# Namespace for Cisco NXAPI-specific code
+module Cisco::RPC::NXAPI
 end
 
-# Add version number to Cisco::RPC namespace
-module Cisco::RPC
-  VERSION = '1.1.0'
-end
+# Auto-load all Ruby files in the subdirectory
+Dir.glob(__dir__ + '/nxapi/*.rb') { |file| require file }

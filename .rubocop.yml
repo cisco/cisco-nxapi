@@ -1,5 +1,11 @@
 # Rubocop configuration file
 
+# Auto-generated files
+AllCops:
+  Exclude:
+    - lib/cisco_rpc/grpc/ems.rb
+    - lib/cisco_rpc/grpc/ems_services.rb
+
 # Baseline code complexity metrics - we should try and reduce these over time
 Metrics/AbcSize:
   Max: 43

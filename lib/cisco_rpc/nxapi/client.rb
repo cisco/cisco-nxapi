@@ -17,7 +17,7 @@
 # limitations under the License.
 
 require 'json'
-require_relative 'cisco_logger'
+require_relative '../cisco_logger'
 require 'net/http'
 
 include CiscoLogger
@@ -25,7 +25,7 @@ include CiscoLogger
 # Namespace for all NXAPI-related functionality and classes.
 module Cisco::RPC::NXAPI
   # NxapiError is an abstract parent class for all errors raised by this module
-  class NxapiError < RuntimeError
+  class NxapiError < Cisco::RPC::RPCError
   end
 
   # CliError indicates that the node rejected the CLI as invalid.
@@ -48,15 +48,6 @@ module Cisco::RPC::NXAPI
     end
   end
 
-  # RequestNotSupported means we requested structured output for a CLI
-  # that doesn't currently support structured output
-  class RequestNotSupported < NxapiError
-  end
-
-  # ConnectionRefused means the NXAPI server isn't listening
-  class ConnectionRefused < NxapiError
-  end
-
   # HTTPBadRequest means we did something wrong in our request
   class HTTPBadRequest < NxapiError
   end
@@ -75,11 +66,12 @@ module Cisco::RPC::NXAPI
   NXAPI_VERSION = '1.0'
 
   # Class representing an HTTP client connecting to a NXAPI server.
-  class Client
+  class Client < Cisco::RPC::Client
     # Constructor for Client. By default this connects to the local
     # unix domain socket. If you need to connect to a remote device,
     # you must provide the address/username/password parameters.
     def initialize(address=nil, username=nil, password=nil)
+      super
       # Default: connect to unix domain socket on localhost, if available
       if address.nil?
         if File.socket?(NXAPI_UDS)
@@ -110,15 +102,10 @@ module Cisco::RPC::NXAPI
         fail TypeError, 'invalid username' unless username.is_a?(String)
         fail ArgumentError, 'empty username' unless username.length > 0
       end
-      unless password.nil?
+      unless password.nil? # rubocop:disable Style/GuardClause
         fail TypeError, 'invalid password' unless password.is_a?(String)
         fail ArgumentError, 'empty password' unless password.length > 0
       end
-      @username = username
-      @password = password
-      @cache_enable = true
-      @cache_auto = true
-      cache_flush
     end
 
     def to_s
@@ -132,21 +119,6 @@ module Cisco::RPC::NXAPI
     def reload
       # no-op for now
     end
-
-    def cache_enable?
-      @cache_enable
-    end
-
-    def cache_enable=(enable)
-      @cache_enable = enable
-      cache_flush unless enable
-    end
-
-    def cache_auto?
-      @cache_auto
-    end
-
-    attr_writer :cache_auto
 
     # Clear the cache of CLI output results.
     #
@@ -169,8 +141,7 @@ module Cisco::RPC::NXAPI
     #   1) The configuration sequence, as a newline-separated string
     #   2) An array of command strings (one command per string, no newlines)
     def config(commands)
-      cache_flush if cache_auto?
-
+      super
       if commands.is_a?(String)
         commands = commands.split(/\n/)
       elsif !commands.is_a?(Array)
@@ -189,7 +160,7 @@ module Cisco::RPC::NXAPI
     # @return [String, nil] the body of the output of the exec command
     #   (if any)
     def exec(command)
-      cache_flush if cache_auto?
+      super
       req('cli_show_ascii', command)
     end
 
@@ -210,6 +181,7 @@ module Cisco::RPC::NXAPI
     # @return [String] the output of the show command, if type == :ascii
     # @return [Hash{String=>String}] key-value pairs, if type == :structured
     def show(command, type=:ascii)
+      super
       if type == :ascii
         return req('cli_show_ascii', command)
       elsif type == :structured
@@ -257,7 +229,7 @@ module Cisco::RPC::NXAPI
         response = @http.request(request)
       rescue Errno::ECONNREFUSED, Errno::ECONNRESET
         emsg = 'Connection refused or reset. Is the NX-API feature enabled?'
-        raise ConnectionRefused, emsg
+        raise Cisco::RPC::ConnectionRefused, emsg
       end
       handle_http_response(response)
       body = JSON.parse(response.body)
@@ -337,7 +309,7 @@ module Cisco::RPC::NXAPI
         # if structured output is not supported for this command,
         # raise an exception so that the calling function can
         # handle accordingly
-        fail RequestNotSupported, \
+        fail Cisco::RPC::RequestNotSupported, \
              "Structured output not supported for #{command}"
       else
         debug("Result for '#{command}': #{output['msg']}")

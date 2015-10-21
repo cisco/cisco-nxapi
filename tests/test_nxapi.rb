@@ -126,7 +126,7 @@ class TestNxapi < TestCase
   def test_show_structured_unsupported
     # TBD: n3k DOES support structured for this command,
     #  n9k DOES NOT support structured for this command
-    assert_raises RequestNotSupported do
+    assert_raises Cisco::RPC::RequestNotSupported do
       client.show('show snmp internal globals', :structured)
     end
   end
@@ -136,25 +136,25 @@ class TestNxapi < TestCase
     @device.cmd('no feature nxapi')
     @device.cmd('end')
     client.cache_flush
-    assert_raises ConnectionRefused do
+    assert_raises Cisco::RPC::ConnectionRefused do
       client.show('show version')
     end
-    assert_raises ConnectionRefused do
+    assert_raises Cisco::RPC::ConnectionRefused do
       client.exec('show version')
     end
-    assert_raises ConnectionRefused do
+    assert_raises Cisco::RPC::ConnectionRefused do
       client.config('interface Et1/1')
     end
     # On the off chance that things behave differently when NXAPI is
     # disabled while we're connected, versus trying to connect afresh...
     @@client = nil # rubocop:disable Style/ClassVars
-    assert_raises ConnectionRefused do
+    assert_raises Cisco::RPC::ConnectionRefused do
       client.show('show version')
     end
-    assert_raises ConnectionRefused do
+    assert_raises Cisco::RPC::ConnectionRefused do
       client.exec('show version')
     end
-    assert_raises ConnectionRefused do
+    assert_raises Cisco::RPC::ConnectionRefused do
       client.config('interface Et1/1')
     end
 
@@ -187,7 +187,7 @@ class TestNxapi < TestCase
       req('hello', 'world')
     end
 
-    assert_raises RequestNotSupported do
+    assert_raises Cisco::RPC::RequestNotSupported do
       client.hello
     end
   end
