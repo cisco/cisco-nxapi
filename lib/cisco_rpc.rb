@@ -12,5 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Automatically load all Ruby files in the cisco_nxapi subdirectory
-Dir.glob(__dir__ + '/cisco_nxapi/*.rb') { |file| require file }
+# Automatically load all Ruby files in the cisco_rpc subdirectory
+Dir.glob(__dir__ + '/cisco_rpc/*.rb') { |file| require file }

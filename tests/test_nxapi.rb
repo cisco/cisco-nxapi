@@ -15,7 +15,7 @@
 # limitations under the License.
 
 require_relative 'basetest'
-require_relative '../lib/cisco_nxapi/cisco_nxapi'
+require_relative '../lib/cisco_rpc/cisco_nxapi'
 
 # TestNxapi - NXAPI client unit tests
 class TestNxapi < TestCase

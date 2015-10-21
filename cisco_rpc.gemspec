@@ -1,10 +1,10 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'cisco_nxapi/version'
+require 'cisco_rpc/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'cisco_nxapi'
+  spec.name          = 'cisco_rpc'
   spec.version       = CiscoNxapi::VERSION
   spec.authors       = ['Alex Hunsberger', 'Glenn Matthews',
                         'Chris Van Heuveln', 'Mike Wiebe', 'Jie Yang']

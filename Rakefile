@@ -9,7 +9,7 @@ task default: %w(rubocop build)
 RuboCop::RakeTask.new
 
 task :build do
-  system 'gem build cisco_nxapi.gemspec'
+  system 'gem build cisco_rpc.gemspec'
 end
 
 Rake::TestTask.new do |t|
