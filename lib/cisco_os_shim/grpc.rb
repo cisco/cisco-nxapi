@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Namespace for Cisco EMS gRPC-specific code
-module Cisco::Shim::GRPC
+module Cisco
+  module Shim
+    # Namespace for Cisco EMS gRPC-specific code
+    module GRPC
+    end
+  end
 end
 
 # Auto-load all Ruby files in the subdirectory

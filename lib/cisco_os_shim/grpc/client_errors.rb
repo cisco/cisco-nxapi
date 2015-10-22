@@ -1,3 +1,7 @@
+#!/usr/bin/env ruby
+#
+# October 2015, Glenn F. Matthews
+#
 # Copyright (c) 2015 Cisco and/or its affiliates.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,12 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Namespace for Cisco-specific code
-module Cisco
-  # Namespace for Cisco OS Shim code
-  module Shim
+require_relative '../client_errors'
+
+module Cisco::Shim::GRPC
+  class CliError < Cisco::Shim::RequestFailed
   end
 end
-
-# Auto-load all Ruby files in the subdirectory
-Dir.glob(__dir__ + '/cisco_os_shim/*.rb') { |file| require file }

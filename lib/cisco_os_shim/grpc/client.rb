@@ -20,14 +20,13 @@ require 'grpc'
 require 'json'
 require_relative 'ems_services'
 require_relative '../cisco_logger'
+require_relative '../client'
+require_relative 'client_errors'
 
 include IOSXRExtensibleManagabilityService
 include CiscoLogger
 
 module Cisco::Shim::GRPC
-  class CliError < Cisco::Shim::RPCError
-  end
-
   # TODO
   class Client < Cisco::Shim::Client
     def initialize(address, username, password)
@@ -100,6 +99,7 @@ module Cisco::Shim::GRPC
       @cache_hash[type][args.cli] = output if cache_enable? && !output.empty?
       return output
     rescue GRPC::BadStatus => e
+      # TODO
       error e.code
       error e.details
       raise

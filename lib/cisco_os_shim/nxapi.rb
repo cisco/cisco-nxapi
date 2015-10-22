@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Namespace for Cisco NXAPI-specific code
-module Cisco::Shim::NXAPI
+module Cisco
+  module Shim
+    # Namespace for Cisco NXAPI-specific code
+    module NXAPI
+    end
+  end
 end
 
 # Auto-load all Ruby files in the subdirectory

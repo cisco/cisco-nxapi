@@ -15,7 +15,7 @@
 # limitations under the License.
 
 require_relative 'basetest'
-require_relative '../lib/cisco_os_shim'
+require_relative '../lib/cisco_os_shim/nxapi'
 
 include Cisco::Shim::NXAPI
 
@@ -77,7 +77,7 @@ class TestNxapi < TestCase
   end
 
   def test_exec_too_long
-    assert_raises NxapiError do
+    assert_raises Cisco::Shim::RequestNotSupported do
       client.exec('0' * 500_000)
     end
   end

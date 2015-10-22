@@ -16,20 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require_relative 'client_errors'
+
 module Cisco::Shim
-  # Base class for RPC errors
-  class RPCError < RuntimeError
-  end
-
-  # RequestNotSupported means we requested structured output for a CLI
-  # that doesn't currently support structured output
-  class RequestNotSupported < RPCError
-  end
-
-  # ConnectionRefused means the server isn't listening
-  class ConnectionRefused < RPCError
-  end
-
   # Base class for clients of various RPC formats
   class Client
     def initialize(address=nil, username=nil, password=nil)
@@ -67,7 +56,7 @@ module Cisco::Shim
 
     # Configure the given command(s) on the device.
     #
-    # @raise [RPCError] if the configuration fails
+    # @raise [RequestFailed] if the configuration fails
     #
     # @param commands [String, Array<String>] either of:
     #   1) The configuration sequence, as a newline-separated string
@@ -100,7 +89,7 @@ module Cisco::Shim
     #
     # @raise [RequestNotSupported] if
     #   structured output is requested but the given command can't provide it.
-    # @raise [RPCError] if the command is rejected by the device
+    # @raise [RequestFailed] if the command is rejected by the device
     #
     # @param command [String] the show command to execute
     # @param type [:ascii, :structured] ASCII or structured output.

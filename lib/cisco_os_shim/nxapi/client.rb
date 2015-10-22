@@ -17,45 +17,15 @@
 # limitations under the License.
 
 require 'json'
-require_relative '../cisco_logger'
 require 'net/http'
+require_relative '../cisco_logger'
+require_relative '../client'
+require_relative 'client_errors'
 
 include CiscoLogger
 
 # Namespace for all NXAPI-related functionality and classes.
 module Cisco::Shim::NXAPI
-  # NxapiError is an abstract parent class for all errors raised by this module
-  class NxapiError < Cisco::Shim::RPCError
-  end
-
-  # CliError indicates that the node rejected the CLI as invalid.
-  class CliError < NxapiError
-    attr_reader :input, :msg, :code, :clierror, :previous
-    def initialize(input, msg, code, clierror, previous)
-      @input = input
-      @msg = msg
-      @code = code
-      @clierror = clierror
-      @previous = previous
-    end
-
-    def to_s
-      "CliError: '#{@input}' rejected with message: '#{clierror}'"
-    end
-
-    def message
-      to_s
-    end
-  end
-
-  # HTTPBadRequest means we did something wrong in our request
-  class HTTPBadRequest < NxapiError
-  end
-
-  # HTTPUnauthorized means we provided incorrect credentials
-  class HTTPUnauthorized < NxapiError
-  end
-
   # Location of unix domain socket for NXAPI localhost
   NXAPI_UDS = '/tmp/nginx_local/nginx_1_be_nxapi.sock'
   # NXAPI listens for remote connections to "http://<switch IP>/ins"
@@ -82,7 +52,8 @@ module Cisco::Shim::NXAPI
           require 'net_http_unix'
           @http = NetX::HTTPUnix.new('unix://' + NXAPI_UDS)
         else
-          fail "No address specified but no UDS found at #{NXAPI_UDS} either"
+          fail Cisco::Shim::ConnectionRefused, \
+               "No address specified but no UDS found at #{NXAPI_UDS} either"
         end
       else
         fail TypeError, 'invalid address' unless address.is_a?(String)
@@ -237,7 +208,9 @@ module Cisco::Shim::NXAPI
       # proceed carefully, as blindly doing body["ins_api"]["outputs"]["output"]
       # could throw an error otherwise.
       output = body['ins_api']
-      fail NxapiError, "unexpected JSON output:\n#{body}" unless output
+      if output.nil?
+        fail Cisco::Shim::ShimError, "unexpected JSON output:\n#{body}"
+      end
       output = output['outputs'] if output['outputs']
       output = output['output'] if output['output']
 
@@ -304,7 +277,7 @@ module Cisco::Shim::NXAPI
                           output['clierror'], prev_cmds)
       elsif output['code'] == '413'
         # Request too large
-        fail NxapiError, "Error 413: #{output['msg']}"
+        fail Cisco::Shim::RequestNotSupported, "Error 413: #{output['msg']}"
       elsif output['code'] == '501'
         # if structured output is not supported for this command,
         # raise an exception so that the calling function can

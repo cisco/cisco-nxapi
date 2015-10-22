@@ -33,7 +33,7 @@ Style/AlignHash:
   EnforcedColonStyle: table
 
 Style/ClassAndModuleChildren:
-  EnforcedStyle: compact
+  Enabled: false
 
 Style/ClassCheck:
   Enabled: false
