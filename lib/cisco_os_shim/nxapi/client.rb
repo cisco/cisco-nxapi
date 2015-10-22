@@ -44,17 +44,16 @@ module Cisco::Shim::NXAPI
       super
       # Default: connect to unix domain socket on localhost, if available
       if address.nil?
-        if File.socket?(NXAPI_UDS)
-          # net_http_unix provides NetX::HTTPUnix, a small subclass of Net::HTTP
-          # which supports connection to local unix domain sockets. We need this
-          # in order to run natively under NX-OS but it's not needed for off-box
-          # unit testing where the base Net::HTTP will meet our needs.
-          require 'net_http_unix'
-          @http = NetX::HTTPUnix.new('unix://' + NXAPI_UDS)
-        else
+        unless File.socket?(NXAPI_UDS)
           fail Cisco::Shim::ConnectionRefused, \
                "No address specified but no UDS found at #{NXAPI_UDS} either"
         end
+        # net_http_unix provides NetX::HTTPUnix, a small subclass of Net::HTTP
+        # which supports connection to local unix domain sockets. We need this
+        # in order to run natively under NX-OS but it's not needed for off-box
+        # unit testing where the base Net::HTTP will meet our needs.
+        require 'net_http_unix'
+        @http = NetX::HTTPUnix.new('unix://' + NXAPI_UDS)
       else
         fail TypeError, 'invalid address' unless address.is_a?(String)
         fail ArgumentError, 'empty address' if address.empty?
@@ -68,6 +67,7 @@ module Cisco::Shim::NXAPI
       # scaled configuration to apply. Change it to 300 seconds, which is
       # also used as the default config by firefox.
       @http.read_timeout = 300
+      @address = @http.address
 
       unless username.nil?
         fail TypeError, 'invalid username' unless username.is_a?(String)
@@ -77,14 +77,6 @@ module Cisco::Shim::NXAPI
         fail TypeError, 'invalid password' unless password.is_a?(String)
         fail ArgumentError, 'empty password' unless password.length > 0
       end
-    end
-
-    def to_s
-      @http.address
-    end
-
-    def inspect
-      "<Cisco::Shim::NXAPI::Client of #{@http.address}>"
     end
 
     def reload

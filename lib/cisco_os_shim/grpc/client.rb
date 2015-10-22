@@ -42,14 +42,6 @@ module Cisco::Shim::GRPC
                                  update_metadata: @update_metadata)
     end
 
-    def to_s
-      "#{@address}:#{@port}"
-    end
-
-    def inspect
-      "<Cisco::Shim::GRPC::Client of #{@address}:#{@port}>"
-    end
-
     def cache_flush
       @cache_hash = {
         'cli_config'           => {},

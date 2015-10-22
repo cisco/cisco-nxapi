@@ -30,6 +30,14 @@ module Cisco::Shim
       cache_flush
     end
 
+    def to_s
+      @address.to_s
+    end
+
+    def inspect
+      "<#{self.class} of #{@address}>"
+    end
+
     def cache_enable?
       @cache_enable
     end
