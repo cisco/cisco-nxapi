@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in cisco_node_nxapi.gemspec
+# Specify the gem's dependencies in the .gemspec file
 gemspec

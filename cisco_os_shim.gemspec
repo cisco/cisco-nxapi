@@ -1,17 +1,18 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'cisco_rpc/version'
+require 'cisco_os_shim/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'cisco_rpc'
+  spec.name          = 'cisco_os_shim'
   spec.version       = Cisco::RPC::VERSION
   spec.authors       = ['Alex Hunsberger', 'Glenn Matthews',
                         'Chris Van Heuveln', 'Mike Wiebe', 'Jie Yang']
   spec.email         = 'cisco_agent_gem@cisco.com'
-  spec.summary       = 'Utilities for working with Cisco NX-OS NX-API'
+  spec.summary       = \
+    'Abstraction layer for Cisco APIs (NX-OS NXAPI, IOS XR gRPC, etc.)'
   spec.description   = <<-EOF
-Utilities for working with the Cisco NX-OS NX-API.
+Abstraction layer for Cisco APIs (NX-OS NXAPI, IOS XR gRPC, etc.)
 Designed to be used with Puppet and Chef and the cisco_node_utils gem.
   EOF
   spec.license       = 'Apache-2.0'

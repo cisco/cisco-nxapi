@@ -1,6 +1,6 @@
 # CiscoNxapi - Cisco NX-API Utilities
 
-[![Gem Version](https://badge.fury.io/rb/cisco_rpc.svg)](http://badge.fury.io/rb/cisco_rpc)
+[![Gem Version](https://badge.fury.io/rb/cisco_os_shim.svg)](http://badge.fury.io/rb/cisco_os_shim)
 [![Build Status](https://travis-ci.org/cisco/cisco-nxapi.svg?branch=develop)](https://travis-ci.org/cisco/cisco-nxapi)
 
 The CiscoNxapi gem provides utilities for communicating with Cisco network
@@ -13,7 +13,7 @@ For a greater level of abstraction, use the [CiscoNodeUtils gem](https://rubygem
 
 To install the CiscoNxapi gem, use the following command:
 
-    $ gem install cisco_rpc
+    $ gem install cisco_os_shim
 
 (Add `sudo` if you're installing under a POSIX system as root)
 
@@ -29,7 +29,7 @@ included minitest suite).
 ### Usage on a Cisco device
 
 ```ruby
-require 'cisco_rpc'
+require 'cisco_os_shim'
 
 client = Cisco::RPC::NXAPI::Client.new()
 
@@ -43,7 +43,7 @@ client.config(["interface ethernet1/1",
 ### Remote usage
 
 ```ruby
-require 'cisco_rpc'
+require 'cisco_os_shim'
 
 client = Cisco::RPC::NXAPI::Client.new("n3k.mycompany.com",
                                        "username", "password")

@@ -21,4 +21,4 @@ module Cisco::RPC
 end
 
 # Auto-load all Ruby files in the subdirectory
-Dir.glob(__dir__ + '/cisco_rpc/*.rb') { |file| require file }
+Dir.glob(__dir__ + '/cisco_os_shim/*.rb') { |file| require file }

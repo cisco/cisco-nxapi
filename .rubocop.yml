@@ -3,8 +3,8 @@
 AllCops:
   Exclude:
     # Auto-generated files
-    - lib/cisco_rpc/grpc/ems.rb
-    - lib/cisco_rpc/grpc/ems_services.rb
+    - lib/cisco_os_shim/grpc/ems.rb
+    - lib/cisco_os_shim/grpc/ems_services.rb
     # Files we don't own
     - vendor/**/*
 

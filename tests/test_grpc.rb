@@ -17,7 +17,7 @@
 # limitations under the License.
 
 require_relative 'basetest'
-require_relative '../lib/cisco_rpc'
+require_relative '../lib/cisco_os_shim'
 
 include Cisco::RPC::GRPC
 
