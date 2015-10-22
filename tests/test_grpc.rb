@@ -19,9 +19,9 @@
 require_relative 'basetest'
 require_relative '../lib/cisco_os_shim'
 
-include Cisco::RPC::GRPC
+include Cisco::Shim::GRPC
 
-# Test case for Cisco::RPC::GRPC::Client class
+# Test case for Cisco::Shim::GRPC::Client class
 class TestGRPC < TestCase
   @@client = nil # rubocop:disable Style/ClassVars
 

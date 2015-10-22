@@ -16,7 +16,7 @@
 module Cisco
 end
 
-# Add version number to Cisco::RPC namespace
-module Cisco::RPC
+# Add version number to Cisco::Shim namespace
+module Cisco::Shim
   VERSION = '1.1.0'
 end

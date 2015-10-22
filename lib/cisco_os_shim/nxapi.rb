@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Namespace for Cisco NXAPI-specific code
-module Cisco::RPC::NXAPI
+module Cisco::Shim::NXAPI
 end
 
 # Auto-load all Ruby files in the subdirectory

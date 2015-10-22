@@ -5,7 +5,7 @@ require 'cisco_os_shim/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'cisco_os_shim'
-  spec.version       = Cisco::RPC::VERSION
+  spec.version       = Cisco::Shim::VERSION
   spec.authors       = ['Alex Hunsberger', 'Glenn Matthews',
                         'Chris Van Heuveln', 'Mike Wiebe', 'Jie Yang']
   spec.email         = 'cisco_agent_gem@cisco.com'

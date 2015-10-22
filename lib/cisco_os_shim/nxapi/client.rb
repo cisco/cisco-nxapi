@@ -23,9 +23,9 @@ require 'net/http'
 include CiscoLogger
 
 # Namespace for all NXAPI-related functionality and classes.
-module Cisco::RPC::NXAPI
+module Cisco::Shim::NXAPI
   # NxapiError is an abstract parent class for all errors raised by this module
-  class NxapiError < Cisco::RPC::RPCError
+  class NxapiError < Cisco::Shim::RPCError
   end
 
   # CliError indicates that the node rejected the CLI as invalid.
@@ -66,7 +66,7 @@ module Cisco::RPC::NXAPI
   NXAPI_VERSION = '1.0'
 
   # Class representing an HTTP client connecting to a NXAPI server.
-  class Client < Cisco::RPC::Client
+  class Client < Cisco::Shim::Client
     # Constructor for Client. By default this connects to the local
     # unix domain socket. If you need to connect to a remote device,
     # you must provide the address/username/password parameters.
@@ -113,7 +113,7 @@ module Cisco::RPC::NXAPI
     end
 
     def inspect
-      "<Cisco::RPC::NXAPI::Client of #{@http.address}>"
+      "<Cisco::Shim::NXAPI::Client of #{@http.address}>"
     end
 
     def reload
@@ -229,7 +229,7 @@ module Cisco::RPC::NXAPI
         response = @http.request(request)
       rescue Errno::ECONNREFUSED, Errno::ECONNRESET
         emsg = 'Connection refused or reset. Is the NX-API feature enabled?'
-        raise Cisco::RPC::ConnectionRefused, emsg
+        raise Cisco::Shim::ConnectionRefused, emsg
       end
       handle_http_response(response)
       body = JSON.parse(response.body)
@@ -309,7 +309,7 @@ module Cisco::RPC::NXAPI
         # if structured output is not supported for this command,
         # raise an exception so that the calling function can
         # handle accordingly
-        fail Cisco::RPC::RequestNotSupported, \
+        fail Cisco::Shim::RequestNotSupported, \
              "Structured output not supported for #{command}"
       else
         debug("Result for '#{command}': #{output['msg']}")

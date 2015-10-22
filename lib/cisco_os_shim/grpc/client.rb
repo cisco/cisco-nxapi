@@ -24,12 +24,12 @@ require_relative '../cisco_logger'
 include IOSXRExtensibleManagabilityService
 include CiscoLogger
 
-module Cisco::RPC::GRPC
-  class CliError < Cisco::RPC::RPCError
+module Cisco::Shim::GRPC
+  class CliError < Cisco::Shim::RPCError
   end
 
   # TODO
-  class Client < Cisco::RPC::Client
+  class Client < Cisco::Shim::Client
     def initialize(address, username, password)
       super
       @update_metadata = proc do |md|
@@ -48,7 +48,7 @@ module Cisco::RPC::GRPC
     end
 
     def inspect
-      "<Cisco::RPC::GRPC::Client of #{@address}:#{@port}>"
+      "<Cisco::Shim::GRPC::Client of #{@address}:#{@port}>"
     end
 
     def cache_flush

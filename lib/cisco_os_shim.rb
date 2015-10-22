@@ -16,8 +16,8 @@
 module Cisco
 end
 
-# Namespace for Cisco RPC code
-module Cisco::RPC
+# Namespace for Cisco OS Shim code
+module Cisco::Shim
 end
 
 # Auto-load all Ruby files in the subdirectory
