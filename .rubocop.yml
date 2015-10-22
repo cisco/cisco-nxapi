@@ -1,22 +1,25 @@
 # Rubocop configuration file
 
+# Code complexity metrics are tracked separately for lib/ vs. tests/
+# See lib/.rubocop.yml and tests/.rubocop.yml
+
 # Baseline code complexity metrics - we should try and reduce these over time
 Metrics/AbcSize:
-  Max: 43
-
-Metrics/ClassLength:
-  Max: 171
+  Enabled: true
 
 Metrics/CyclomaticComplexity:
-  Max: 13
+  Enabled: true
 
 Metrics/MethodLength:
-  Max: 55
+  Enabled: true
 
 Metrics/PerceivedComplexity:
-  Max: 15
+  Enabled: true
 
 # Team preferences different from Rubocop defaults:
+Metrics/ClassLength:
+  Enabled: false
+
 Style/AlignHash:
   EnforcedHashRocketStyle: table
   EnforcedColonStyle: table
