@@ -37,10 +37,13 @@ module Cisco::Shim::NXAPI
 
   # Class representing an HTTP client connecting to a NXAPI server.
   class Client < Cisco::Shim::Client
+    register_client('NXAPI')
+
     # Constructor for Client. By default this connects to the local
     # unix domain socket. If you need to connect to a remote device,
     # you must provide the address/username/password parameters.
     def initialize(address=nil, username=nil, password=nil)
+      validate_args(address, username, password)
       super
       # Default: connect to unix domain socket on localhost, if available
       if address.nil?
@@ -55,13 +58,9 @@ module Cisco::Shim::NXAPI
         require 'net_http_unix'
         @http = NetX::HTTPUnix.new('unix://' + NXAPI_UDS)
       else
-        fail TypeError, 'invalid address' unless address.is_a?(String)
-        fail ArgumentError, 'empty address' if address.empty?
         # Remote connection. This is primarily expected
         # when running e.g. from a Unix server as part of Minitest.
         @http = Net::HTTP.new(address)
-        # In this case, a username and password are mandatory
-        fail TypeError if username.nil? || password.nil?
       end
       # The default read time out is 60 seconds, which may be too short for
       # scaled configuration to apply. Change it to 300 seconds, which is
@@ -69,15 +68,26 @@ module Cisco::Shim::NXAPI
       @http.read_timeout = 300
       @address = @http.address
 
-      unless username.nil?
+      # Make sure we can actually connect to the socket
+      show('show hostname')
+    end
+
+    def validate_args(address, username, password)
+      if address.nil?
+        # Connection to UDS - no username or password either
+        fail ArgumentError unless username.nil? && password.nil?
+      else
+        fail TypeError, 'invalid address' unless address.is_a?(String)
+        fail ArgumentError, 'empty address' if address.empty?
+        fail ArgumentError, 'no port number permitted' if address =~ /:/
+        # Connection to remote system - username and password are required
         fail TypeError, 'invalid username' unless username.is_a?(String)
         fail ArgumentError, 'empty username' unless username.length > 0
-      end
-      unless password.nil? # rubocop:disable Style/GuardClause
         fail TypeError, 'invalid password' unless password.is_a?(String)
         fail ArgumentError, 'empty password' unless password.length > 0
       end
     end
+    private :validate_args
 
     def reload
       # no-op for now
@@ -195,16 +205,7 @@ module Cisco::Shim::NXAPI
         raise Cisco::Shim::ConnectionRefused, emsg
       end
       handle_http_response(response)
-      body = JSON.parse(response.body)
-      # In case of an error the JSON may not be complete, so we need to
-      # proceed carefully, as blindly doing body["ins_api"]["outputs"]["output"]
-      # could throw an error otherwise.
-      output = body['ins_api']
-      if output.nil?
-        fail Cisco::Shim::ShimError, "unexpected JSON output:\n#{body}"
-      end
-      output = output['outputs'] if output['outputs']
-      output = output['output'] if output['output']
+      output = parse_response(response)
 
       prev_cmds = []
       if output.is_a?(Array)
@@ -260,6 +261,25 @@ module Cisco::Shim::NXAPI
       end
     end
     private :handle_http_response
+
+    def parse_response(response)
+      body = JSON.parse(response.body)
+
+      # In case of an error the JSON may not be complete, so we need to
+      # proceed carefully, as blindly doing body["ins_api"]["outputs"]["output"]
+      # could throw an error otherwise.
+      output = body['ins_api']
+      if output.nil?
+        fail Cisco::Shim::ShimError, "unexpected JSON output:\n#{body}"
+      end
+      output = output['outputs'] if output['outputs']
+      output = output['output'] if output['output']
+
+      output
+    rescue JSON::ParserError
+      raise Cisco::Shim::ShimError, "response is not JSON:\n#{body}"
+    end
+    private :parse_response
 
     def handle_output(prev_cmds, command, output)
       if output['code'] == '400'

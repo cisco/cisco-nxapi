@@ -17,7 +17,7 @@
 # limitations under the License.
 
 require_relative 'basetest'
-require_relative '../lib/cisco_os_shim/grpc'
+require_relative '../lib/cisco_os_shim'
 
 include Cisco::Shim::GRPC
 
@@ -106,4 +106,9 @@ class TestGRPC < TestCase
 
   # TODO: add structured output test cases
   # TODO: add negative test cases for connection refused, auth fail, etc.
+
+  def test_smart_create
+    autoclient = Cisco::Shim::Client.create(address, username, password)
+    assert_equal(Cisco::Shim::GRPC::Client, autoclient.class)
+  end
 end

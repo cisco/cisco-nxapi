@@ -29,6 +29,8 @@ include CiscoLogger
 module Cisco::Shim::GRPC
   # TODO
   class Client < Cisco::Shim::Client
+    register_client('gRPC')
+
     def initialize(address, username, password)
       super
       @update_metadata = proc do |md|
@@ -40,6 +42,9 @@ module Cisco::Shim::GRPC
                                          update_metadata: @update_metadata)
       @exec = GRPCExec::Stub.new(address,
                                  update_metadata: @update_metadata)
+
+      # Make sure we can actually connect
+      show('show clock')
     end
 
     def cache_flush
@@ -91,10 +96,14 @@ module Cisco::Shim::GRPC
       @cache_hash[type][args.cli] = output if cache_enable? && !output.empty?
       return output
     rescue GRPC::BadStatus => e
-      # TODO
-      error e.code
-      error e.details
-      raise
+      case e.code
+      when GRPC::Core::StatusCodes::UNAVAILABLE
+        raise Cisco::Shim::ConnectionRefused, e.details
+      when GRPC::Core::StatusCodes::UNAUTHENTICATED
+        raise Cisco::Shim::AuthenticationFailed, e.details
+      else
+        raise
+      end
     end
     private :req
 

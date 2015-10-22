@@ -15,7 +15,7 @@
 # limitations under the License.
 
 require_relative 'basetest'
-require_relative '../lib/cisco_os_shim/nxapi'
+require_relative '../lib/cisco_os_shim'
 
 include Cisco::Shim::NXAPI
 
@@ -190,5 +190,10 @@ class TestNxapi < TestCase
     assert_raises Cisco::Shim::RequestNotSupported do
       client.hello
     end
+  end
+
+  def test_smart_create
+    autoclient = Cisco::Shim::Client.create(address, username, password)
+    assert_equal(Cisco::Shim::NXAPI::Client, autoclient.class)
   end
 end

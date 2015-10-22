@@ -17,6 +17,9 @@
 # limitations under the License.
 
 require_relative 'client_errors'
+require_relative 'cisco_logger'
+
+include CiscoLogger
 
 module Cisco::Shim
   # Base class for clients of various RPC formats
@@ -28,6 +31,30 @@ module Cisco::Shim
       @cache_enable = true
       @cache_auto = true
       cache_flush
+    end
+
+    CLIENTS = {}
+
+    # Each subclass should call this method to register itself.
+    def self.register_client(label)
+      CLIENTS[label] = self
+      debug "Client class registered. CLIENTS = #{CLIENTS}"
+    end
+
+    # Try to create an instance of an appropriate subclass
+    def self.create(address=nil, username=nil, password=nil)
+      debug "Trying to establish client connection. CLIENTS = #{CLIENTS}"
+      CLIENTS.each do |label, client_class|
+        begin
+          debug "Trying to connect to #{address} as #{label}"
+          client = client_class.new(address, username, password)
+          debug "#{label} connected successfully"
+          return client
+        rescue ShimError, TypeError, ArgumentError => e
+          debug "Unable to connect to #{address} as #{label}: #{e.message}"
+        end
+      end
+      fail ShimError, 'Unable to establish any client connection'
     end
 
     def to_s
