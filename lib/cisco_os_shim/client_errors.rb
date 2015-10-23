@@ -39,6 +39,15 @@ module Cisco::Shim
 
   # RequestFailed means the request was validly constructed but the
   # requested operation did not execute successfully.
+  #
+  # rejected_input is the command(s) that failed
+  # successful_input is any command(s) that succeeded despite the failure
   class RequestFailed < ShimError
+    attr_reader :rejected_input, :successful_input
+    def initialize(msg, rejected_input, successful_input=[])
+      super(msg)
+      @rejected_input = rejected_input
+      @successful_input = successful_input
+    end
   end
 end

@@ -53,6 +53,10 @@ class TestGRPC < TestCase
     end
     # TODO: we need to parse the error message more precisely
     assert_match(/wark/, e.message)
+    # Unlike NXAPI, a gRPC config command is always atomic
+    assert_empty(e.successful_input)
+    # TODO
+    assert_equal('input TODO', e.rejected_input)
   end
 
   def test_exec
@@ -66,6 +70,9 @@ class TestGRPC < TestCase
     end
     # TODO: we need to parse the error message more precisely
     assert_match('xyzzy', e.message)
+    assert_empty(e.successful_input)
+    # TODO
+    assert_equal('input TODO', e.rejected_input)
   end
 
   def test_exec_too_long

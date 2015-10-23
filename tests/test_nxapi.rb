@@ -53,11 +53,13 @@ class TestNxapi < TestCase
     e = assert_raises CliError do
       client.config(['int et1/1', 'exit', 'int et1/2', 'plover'])
     end
-    assert_equal('plover', e.input)
+    assert_match(/plover.*% Invalid command\n/, e.message)
+    assert_equal('plover', e.rejected_input)
+    assert_equal(['int et1/1', 'exit', 'int et1/2'], e.successful_input)
+
+    assert_equal("% Invalid command\n", e.clierror)
     assert_equal('CLI execution error', e.msg)
     assert_equal('400', e.code)
-    assert_equal("% Invalid command\n", e.clierror)
-    assert_equal(['int et1/1', 'exit', 'int et1/2'], e.previous)
   end
 
   def test_exec
@@ -69,11 +71,13 @@ class TestNxapi < TestCase
     e = assert_raises CliError do
       client.exec('xyzzy')
     end
-    assert_equal('xyzzy', e.input)
+    assert_match(/xyzzy.*Syntax error/, e.message)
+    assert_equal('xyzzy', e.rejected_input)
+    assert_empty(e.successful_input)
+
+    assert_match(/Syntax error/, e.clierror)
     assert_equal('Input CLI command error', e.msg)
     assert_equal('400', e.code)
-    assert_match(/Syntax error/, e.clierror)
-    assert_equal([], e.previous)
   end
 
   def test_exec_too_long

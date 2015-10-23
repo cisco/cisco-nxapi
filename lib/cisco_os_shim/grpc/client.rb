@@ -139,9 +139,9 @@ module Cisco::Shim::GRPC
         msg = JSON.parse(reply.errors)
         msg = msg['cisco-grpc:errors']['error']
         msg = msg.map { |m| m['error-message'] }
-        fail CliError, msg
+        fail CliError.new(msg, 'input TODO')
       else
-        fail CliError, reply.errors
+        fail CliError.new(reply.errors, 'input TODO')
       end
     end
     private :handle_reply

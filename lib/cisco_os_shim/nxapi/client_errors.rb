@@ -22,21 +22,12 @@ require_relative '../client_errors'
 module Cisco::Shim::NXAPI
   # CliError indicates that the node rejected the CLI as invalid.
   class CliError < Cisco::Shim::RequestFailed
-    attr_reader :input, :msg, :code, :clierror, :previous
+    attr_reader :clierror, :msg, :code
     def initialize(input, msg, code, clierror, previous)
-      @input = input
+      super("CliError: '#{input} rejected with message: '#{clierror}'", input, previous)
+      @clierror = clierror
       @msg = msg
       @code = code
-      @clierror = clierror
-      @previous = previous
-    end
-
-    def to_s
-      "CliError: '#{@input}' rejected with message: '#{clierror}'"
-    end
-
-    def message
-      to_s
     end
   end
 
