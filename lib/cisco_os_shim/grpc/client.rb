@@ -33,6 +33,7 @@ module Cisco::Shim::GRPC
 
     def initialize(address, username, password)
       super
+      @api = 'gRPC'
       @update_metadata = proc do |md|
         md[:username] = username
         md[:password] = password

@@ -117,5 +117,6 @@ class TestGRPC < TestCase
   def test_smart_create
     autoclient = Cisco::Shim::Client.create(address, username, password)
     assert_equal(Cisco::Shim::GRPC::Client, autoclient.class)
+    assert_equal('gRPC', autoclient.api)
   end
 end

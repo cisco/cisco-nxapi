@@ -45,6 +45,7 @@ module Cisco::Shim::NXAPI
     def initialize(address=nil, username=nil, password=nil)
       validate_args(address, username, password)
       super
+      @api = 'NXAPI'
       # Default: connect to unix domain socket on localhost, if available
       if address.nil?
         unless File.socket?(NXAPI_UDS)

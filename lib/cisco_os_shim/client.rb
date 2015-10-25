@@ -24,12 +24,15 @@ include CiscoLogger
 module Cisco::Shim
   # Base class for clients of various RPC formats
   class Client
+    attr_reader :api
+
     def initialize(address=nil, username=nil, password=nil)
       @address = address
       @username = username
       @password = password
       @cache_enable = true
       @cache_auto = true
+      @api = nil # To be set by subclasses
       cache_flush
     end
 
