@@ -32,6 +32,7 @@ module Cisco::Shim::GRPC
     register_client('gRPC')
 
     def initialize(address, username, password)
+      validate_args(address, username, password)
       super
       @api = 'gRPC'
       @update_metadata = proc do |md|
@@ -47,6 +48,18 @@ module Cisco::Shim::GRPC
       # Make sure we can actually connect
       show('show clock')
     end
+
+    def validate_args(address, username, password)
+      fail TypeError, 'invalid address' unless address.is_a?(String)
+      fail ArgumentError, 'empty address' if address.empty?
+      fail ArgumentError, 'port number required' unless address =~ /:/
+      # Connection to remote system - username and password are required
+      fail TypeError, 'invalid username' unless username.is_a?(String)
+      fail ArgumentError, 'empty username' unless username.length > 0
+      fail TypeError, 'invalid password' unless password.is_a?(String)
+      fail ArgumentError, 'empty password' unless password.length > 0
+    end
+    private :validate_args
 
     def cache_flush
       @cache_hash = {
