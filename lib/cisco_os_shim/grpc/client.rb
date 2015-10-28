@@ -32,17 +32,22 @@ module Cisco::Shim::GRPC
     register_client('gRPC')
 
     def initialize(address, username, password)
-      validate_args(address, username, password)
+      if ENV['NODE']
+        @@address ||= ENV['NODE'].split(' ')[0]
+        @@username ||= ENV['NODE'].split(' ')[1]
+        @@password ||= ENV['NODE'].split(' ')[2]
+      end
+      validate_args(@@address, @@username, @@password)
       super
       @api = 'gRPC'
       @update_metadata = proc do |md|
-        md[:username] = username
-        md[:password] = password
+        md[:username] = @@username
+        md[:password] = @@password
         md
       end
-      @config = GRPCConfigOper::Stub.new(address,
+      @config = GRPCConfigOper::Stub.new(@@address,
                                          update_metadata: @update_metadata)
-      @exec = GRPCExec::Stub.new(address,
+      @exec = GRPCExec::Stub.new(@@address,
                                  update_metadata: @update_metadata)
 
       # Make sure we can actually connect
