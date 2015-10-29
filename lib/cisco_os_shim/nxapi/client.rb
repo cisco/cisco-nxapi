@@ -43,7 +43,6 @@ module Cisco::Shim::NXAPI
     # unix domain socket. If you need to connect to a remote device,
     # you must provide the address/username/password parameters.
     def initialize(address=nil, username=nil, password=nil)
-      validate_args(address, username, password)
       super
       @api = 'NXAPI'
       # Default: connect to unix domain socket on localhost, if available
@@ -74,21 +73,17 @@ module Cisco::Shim::NXAPI
     end
 
     def validate_args(address, username, password)
+      super
       if address.nil?
         # Connection to UDS - no username or password either
         fail ArgumentError unless username.nil? && password.nil?
       else
-        fail TypeError, 'invalid address' unless address.is_a?(String)
-        fail ArgumentError, 'empty address' if address.empty?
         fail ArgumentError, 'no port number permitted' if address =~ /:/
         # Connection to remote system - username and password are required
-        fail TypeError, 'invalid username' unless username.is_a?(String)
-        fail ArgumentError, 'empty username' unless username.length > 0
-        fail TypeError, 'invalid password' unless password.is_a?(String)
-        fail ArgumentError, 'empty password' unless password.length > 0
+        fail TypeError, 'username is required' if username.nil?
+        fail TypeError, 'password is required' if password.nil?
       end
     end
-    private :validate_args
 
     def reload
       # no-op for now

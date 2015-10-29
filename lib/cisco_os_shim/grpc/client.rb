@@ -27,18 +27,18 @@ include IOSXRExtensibleManagabilityService
 include CiscoLogger
 
 module Cisco::Shim::GRPC
-  # TODO
+  # Client implementation using gRPC API for IOS XR
   class Client < Cisco::Shim::Client
     register_client('gRPC')
 
     def initialize(address, username, password)
-      if ENV['NODE']
+      # TODO: remove if/when we have a local socket to use
+      if address.nil? && ENV['NODE']
         address ||= ENV['NODE'].split(' ')[0]
         username ||= ENV['NODE'].split(' ')[1]
         password ||= ENV['NODE'].split(' ')[2]
       end
-      validate_args(address, username, password)
-      super
+      super(address, username, password)
       @api = 'gRPC'
       @update_metadata = proc do |md|
         md[:username] = username
@@ -55,16 +55,13 @@ module Cisco::Shim::GRPC
     end
 
     def validate_args(address, username, password)
-      fail TypeError, 'invalid address' unless address.is_a?(String)
-      fail ArgumentError, 'empty address' if address.empty?
-      fail ArgumentError, 'port number required' unless address =~ /:/
+      super
+      fail TypeError, 'address must be specified' if address.nil?
+      fail ArgumentError, 'port # required in address' unless address[/:/]
       # Connection to remote system - username and password are required
-      fail TypeError, 'invalid username' unless username.is_a?(String)
-      fail ArgumentError, 'empty username' unless username.length > 0
-      fail TypeError, 'invalid password' unless password.is_a?(String)
-      fail ArgumentError, 'empty password' unless password.length > 0
+      fail TypeError, 'username must be specified' if username.nil?
+      fail TypeError, 'password must be specified' if password.nil?
     end
-    private :validate_args
 
     def cache_flush
       @cache_hash = {

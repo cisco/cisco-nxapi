@@ -27,6 +27,7 @@ module Cisco::Shim
     attr_reader :api
 
     def initialize(address=nil, username=nil, password=nil)
+      validate_args(address, username, password)
       @address = address
       @username = username
       @password = password
@@ -34,6 +35,21 @@ module Cisco::Shim
       @cache_auto = true
       @api = nil # To be set by subclasses
       cache_flush
+    end
+
+    def validate_args(address, username, password)
+      unless address.nil?
+        fail TypeError, 'invalid address' unless address.is_a?(String)
+        fail ArgumentError, 'empty address' if address.empty?
+      end
+      unless username.nil?
+        fail TypeError, 'invalid username' unless username.is_a?(String)
+        fail ArgumentError, 'empty username' if username.empty?
+      end
+      unless password.nil? # rubocop:disable Style/GuardClause
+        fail TypeError, 'invalid password' unless password.is_a?(String)
+        fail ArgumentError, 'empty password' if password.empty?
+      end
     end
 
     CLIENTS = {}
@@ -47,6 +63,7 @@ module Cisco::Shim
     # Try to create an instance of an appropriate subclass
     def self.create(address=nil, username=nil, password=nil)
       debug "Trying to establish client connection. CLIENTS = #{CLIENTS}"
+      errors = []
       CLIENTS.each do |label, client_class|
         begin
           debug "Trying to connect to #{address} as #{label}"
@@ -55,9 +72,23 @@ module Cisco::Shim
           return client
         rescue ShimError, TypeError, ArgumentError => e
           debug "Unable to connect to #{address} as #{label}: #{e.message}"
+          errors << e
         end
       end
-      fail ShimError, 'Unable to establish any client connection'
+      # ShimError means we tried to connect but failed,
+      # so it's 'more significant' than input validation errors.
+      if errors.any? { |e| e.kind_of? ShimError }
+        fail ShimError, ("Unable to establish any client connection:\n" +
+                         errors.each(&:message).join("\n"))
+      elsif errors.any? { |e| e.kind_of? ArgumentError }
+        fail ArgumentError, ("Invalid arguments:\n" +
+                             errors.each(&:message).join("\n"))
+      elsif errors.any? { |e| e.kind_of? TypeError }
+        fail TypeError, ("Invalid arguments:\n" +
+                         errors.each(&:message).join("\n"))
+      else
+        fail ShimError, 'No client connected, but no errors were reported?'
+      end
     end
 
     def to_s
