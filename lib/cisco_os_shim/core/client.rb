@@ -33,6 +33,8 @@ module Cisco::Shim
 
   # Base class for clients of various RPC formats
   class Client
+    attr_reader :platform
+
     def initialize(address=nil, username=nil, password=nil)
       validate_args(address, username, password)
       @address = address
@@ -40,6 +42,7 @@ module Cisco::Shim
       @password = password
       @cache_enable = true
       @cache_auto = true
+      @platform = nil # to be overridden by subclasses
       cache_flush
     end
 

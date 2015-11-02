@@ -47,6 +47,7 @@ module Cisco::Shim::GRPC
                                          update_metadata: @update_metadata)
       @exec = GRPCExec::Stub.new(address,
                                  update_metadata: @update_metadata)
+      @platform = :ios_xr
 
       # Make sure we can actually connect
       show('show clock')

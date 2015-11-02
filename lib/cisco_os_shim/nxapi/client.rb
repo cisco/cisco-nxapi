@@ -65,6 +65,7 @@ module Cisco::Shim::NXAPI
       # also used as the default config by firefox.
       @http.read_timeout = 300
       @address = @http.address
+      @platform = :nexus
 
       # Make sure we can actually connect to the socket
       show('show hostname')

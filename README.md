@@ -1,24 +1,30 @@
-# CiscoNxapi - Cisco NX-API Utilities
+# `cisco_os_shim`, `cisco_os_shim-nxapi`, and `cisco_os_shim-grpc`
 
 [![Gem Version](https://badge.fury.io/rb/cisco_os_shim.svg)](http://badge.fury.io/rb/cisco_os_shim)
 [![Build Status](https://travis-ci.org/cisco/cisco-nxapi.svg?branch=develop)](https://travis-ci.org/cisco/cisco-nxapi)
 
-The CiscoNxapi gem provides utilities for communicating with Cisco network
-nodes running NX-OS 7.0(3)I2(1) and later via the NX-API management API.
+The `cisco_os_shim` gem provides an abstract interface for communicating with
+Cisco network nodes running various Cisco operating systems. Currently the
+following implementations of this interface are available:
 
-This is a low-level library for direct communication with NX-API.
+- `cisco_os_shim-nxapi` - client for Nexus switches running NX-OS 7.0(3)I2(1) and later via the NX-API management API.
+- `cisco_os_shim-grpc` - client for routers running IOS XR via gRPC.
+
 For a greater level of abstraction, use the [CiscoNodeUtils gem](https://rubygems.org/gems/cisco_node_utils).
 
 ## Installation
 
-To install the CiscoNxapi gem, use the following command:
+To install the `cisco_os_shim` gem, use the following command:
 
     $ gem install cisco_os_shim
 
 (Add `sudo` if you're installing under a POSIX system as root)
 
-Alternatively, if you've checked the source out directly, you can call
-`rake install` from the root project directory.
+Depending on your needs, you will probably also want to install one or more
+of the client implementation gems:
+
+    $ gem install cisco_os_shim-nxapi
+    $ gem install cisco_os_shim-grpc
 
 ## Examples
 
@@ -26,12 +32,14 @@ This gem can be used directly on a Cisco device (as used by Puppet and Chef)
 or can run on a workstation and point to a Cisco device (as used by the
 included minitest suite).
 
+In either case, unless you want to explicitly specify the client implementation class in use, you can simply `require cisco_os_shim` (which will automatically discover available client implementations) and use the `Cisco::Shim::Client.create` API to automatically determine the correct implementation to use.
+
 ### Usage on a Cisco device
 
 ```ruby
 require 'cisco_os_shim'
 
-client = Cisco::RPC::NXAPI::Client.new()
+client = Cisco::Shim::Client.create
 
 client.show("show version")
 
@@ -45,8 +53,8 @@ client.config(["interface ethernet1/1",
 ```ruby
 require 'cisco_os_shim'
 
-client = Cisco::RPC::NXAPI::Client.new("n3k.mycompany.com",
-                                       "username", "password")
+client = Cisco::Shim::Client.create("n3k.mycompany.com",
+                                    "username", "password")
 
 client.show("show version")
 
