@@ -1,9 +1,29 @@
-# Use Docker infrastructure
-sudo: false
+# We'd like to use the Docker infrastructure,
+# but can't install libgrpc-dev at present in that environment. Sigh.
+# sudo: false
+sudo: true
 
 language: ruby
 cache: bundler
 rvm:
   - 2.2.2
   - 2.1.6
-  - 2.0.0
+  # grpc gem doesn't install successfully under 2.0.0:
+  # https://github.com/grpc/grpc/issues/4020
+  # - 2.0.0
+
+before_install:
+  # sudo apt-get install libgrpc-dev doesn't work in Travis.
+  # So instead we compile and install from source,
+  # which takes about 10 minutes. Not too painful.
+  - sudo apt-get install build-essential autoconf libtool
+  - git clone https://github.com/grpc/grpc.git
+  - cd grpc
+  - git submodule update --init
+  - make
+  - sudo make install
+  - cd ..
+  - rm -rf grpc
+
+script:
+ - bundle exec rake
