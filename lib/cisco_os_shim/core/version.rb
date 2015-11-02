@@ -18,5 +18,5 @@ end
 
 # Add version number to Cisco::Shim namespace
 module Cisco::Shim
-  VERSION = '1.1.0'
+  VERSION = '1.0.0-dev'
 end

@@ -16,11 +16,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'cisco_os_shim'
 require 'grpc'
 require 'json'
 require_relative 'ems_services'
-require_relative '../cisco_logger'
-require_relative '../client'
 require_relative 'client_errors'
 
 include IOSXRExtensibleManagabilityService
@@ -29,7 +28,7 @@ include CiscoLogger
 module Cisco::Shim::GRPC
   # Client implementation using gRPC API for IOS XR
   class Client < Cisco::Shim::Client
-    register_client('gRPC')
+    Cisco::Shim.register_client(self)
 
     def initialize(address, username, password)
       # TODO: remove if/when we have a local socket to use
@@ -39,7 +38,6 @@ module Cisco::Shim::GRPC
         password ||= ENV['NODE'].split(' ')[2]
       end
       super(address, username, password)
-      @api = 'gRPC'
       @update_metadata = proc do |md|
         md[:username] = username
         md[:password] = password
@@ -61,6 +59,10 @@ module Cisco::Shim::GRPC
       # Connection to remote system - username and password are required
       fail TypeError, 'username must be specified' if username.nil?
       fail TypeError, 'password must be specified' if password.nil?
+    end
+
+    def supports?(api)
+      (api == :cli)
     end
 
     def cache_flush

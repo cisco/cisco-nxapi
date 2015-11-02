@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'cisco_os_shim'
-
-# Namespace for Cisco EMS gRPC-specific code
-module Cisco::Shim::GRPC
+# Namespace for Cisco-specific code
+module Cisco
+  # Namespace for Cisco OS Shim code
+  module Shim
+  end
 end
 
 # Auto-load all Ruby files in the subdirectory
-Dir.glob(__dir__ + '/grpc/*.rb') { |file| require file }
+Dir.glob(__dir__ + '/core/*.rb') { |file| require file }
