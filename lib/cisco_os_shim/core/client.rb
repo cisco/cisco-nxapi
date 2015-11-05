@@ -21,10 +21,19 @@ require_relative 'cisco_logger'
 
 include CiscoLogger
 
+# Add 'APIS' and 'CLIENTS' module constants
 module Cisco::Shim
+  APIS = [:cli, :yang]
+  CLIENTS = []
+
+  # Each subclass should call this method to register itself.
+  def self.register_client(client)
+    CLIENTS << client
+  end
+
   # Base class for clients of various RPC formats
   class Client
-    attr_reader :api
+    attr_reader :platform
 
     def initialize(address=nil, username=nil, password=nil)
       validate_args(address, username, password)
@@ -33,7 +42,7 @@ module Cisco::Shim
       @password = password
       @cache_enable = true
       @cache_auto = true
-      @api = nil # To be set by subclasses
+      @platform = nil # to be overridden by subclasses
       cache_flush
     end
 
@@ -52,26 +61,25 @@ module Cisco::Shim
       end
     end
 
-    CLIENTS = {}
-
-    # Each subclass should call this method to register itself.
-    def self.register_client(label)
-      CLIENTS[label] = self
-      debug "Client class registered. CLIENTS = #{CLIENTS}"
+    def supports?(api) # rubocop:disable Lint/UnusedMethodArgument
+      false # to be overridden by subclasses
     end
 
     # Try to create an instance of an appropriate subclass
     def self.create(address=nil, username=nil, password=nil)
-      debug "Trying to establish client connection. CLIENTS = #{CLIENTS}"
+      clients = Cisco::Shim::CLIENTS
+      fail 'No client implementations available!' if clients.empty?
+      debug "Trying to establish client connection. clients = #{clients}"
       errors = []
-      CLIENTS.each do |label, client_class|
+      clients.each do |client_class|
+        cls = client_class.class.to_s
         begin
-          debug "Trying to connect to #{address} as #{label}"
+          debug "Trying to connect to #{address} as #{cls}"
           client = client_class.new(address, username, password)
-          debug "#{label} connected successfully"
+          debug "#{cls} connected successfully"
           return client
         rescue ShimError, TypeError, ArgumentError => e
-          debug "Unable to connect to #{address} as #{label}: #{e.message}"
+          debug "Unable to connect to #{address} as #{cls}: #{e.message}"
           errors << e
         end
       end

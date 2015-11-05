@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Make sure the module exists as the gemspec requires this file directly
+# Namespace for Cisco-specific code
 module Cisco
+  # Namespace for Cisco OS Shim code
+  module Shim
+  end
 end
 
-# Add version number to Cisco::Shim namespace
-module Cisco::Shim
-  VERSION = '1.1.0'
-end
+# Auto-load all Ruby files in the subdirectory
+Dir.glob(__dir__ + '/core/*.rb') { |file| require file }

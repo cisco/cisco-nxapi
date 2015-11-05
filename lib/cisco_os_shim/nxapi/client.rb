@@ -16,10 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'cisco_os_shim'
 require 'json'
 require 'net/http'
-require_relative '../cisco_logger'
-require_relative '../client'
 require_relative 'client_errors'
 
 include CiscoLogger
@@ -37,14 +36,13 @@ module Cisco::Shim::NXAPI
 
   # Class representing an HTTP client connecting to a NXAPI server.
   class Client < Cisco::Shim::Client
-    register_client('NXAPI')
+    Cisco::Shim.register_client(self)
 
     # Constructor for Client. By default this connects to the local
     # unix domain socket. If you need to connect to a remote device,
     # you must provide the address/username/password parameters.
     def initialize(address=nil, username=nil, password=nil)
       super
-      @api = 'NXAPI'
       # Default: connect to unix domain socket on localhost, if available
       if address.nil?
         unless File.socket?(NXAPI_UDS)
@@ -67,6 +65,7 @@ module Cisco::Shim::NXAPI
       # also used as the default config by firefox.
       @http.read_timeout = 300
       @address = @http.address
+      @platform = :nexus
 
       # Make sure we can actually connect to the socket
       show('show hostname')
@@ -83,6 +82,10 @@ module Cisco::Shim::NXAPI
         fail TypeError, 'username is required' if username.nil?
         fail TypeError, 'password is required' if password.nil?
       end
+    end
+
+    def supports?(api)
+      (api == :cli)
     end
 
     def reload

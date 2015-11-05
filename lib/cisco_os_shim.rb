@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Namespace for Cisco-specific code
-module Cisco
-  # Namespace for Cisco OS Shim code
-  module Shim
+require_relative 'cisco_os_shim/core'
+
+# Try to load known extensions
+extensions = ['cisco_os_shim/nxapi',
+              'cisco_os_shim/grpc',
+             ]
+extensions.each do |ext|
+  begin
+    require ext
+  rescue LoadError # rubocop:disable Lint/HandleExceptions
   end
 end
-
-# Auto-load all Ruby files in the subdirectory
-Dir.glob(__dir__ + '/cisco_os_shim/*.rb') { |file| require file }
