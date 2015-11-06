@@ -30,7 +30,25 @@ task spec: [:spec_no_clients,
            ]
 
 task :build do
+  system 'rm ./cisco_os_shim*.gem'
   Dir['*.gemspec'].each { |gemspec| system "gem build #{gemspec}" }
+end
+
+task :validate do
+  # Validate gem contents
+  if system('gem specification ./*nxapi*gem | grep -v homepage | grep grpc')
+    fail 'gRPC files in NXAPI gem!'
+  end
+  if system('gem specification ./*grpc*gem | grep -v homepage | grep nxapi')
+    fail 'NXAPI files in gRPC gem!'
+  end
+  if system('gem specification ./*shim-1*gem | grep -v homepage | grep /nxapi')
+    fail 'NXAPI files in core gem!'
+  end
+  if system('gem specification ./*shim-1*gem | grep -v homepage | grep /grpc')
+    fail 'gRPC files in core gem!'
+  end
+  puts 'Sanity check complete.'
 end
 
 Rake::TestTask.new do |t|
