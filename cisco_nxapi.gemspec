@@ -23,6 +23,7 @@ Designed to be used with Puppet and Chef and the cisco_node_utils gem.
   spec.require_paths = ['lib']
 
   spec.required_ruby_version = '>= 2.0.0'
+  spec.required_rubygems_version = '>= 2.1.0'
 
   spec.add_development_dependency 'minitest', '~> 5.0'
   spec.add_development_dependency 'bundler', '~> 1.7'

@@ -15,4 +15,7 @@
 # Add version number to CiscoNxapi namespace
 module CiscoNxapi
   VERSION = '1.0.0'
+  gem_version = Gem::Version.new(Gem::VERSION)
+  min_gem_version = Gem::Version.new('2.1.0')
+  fail 'Required rubygems version >= 2.1.0' if gem_version < min_gem_version
 end
