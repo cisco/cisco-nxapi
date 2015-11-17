@@ -28,7 +28,7 @@ Designed to be used with Puppet and Chef and the cisco_node_utils gem.
   spec.add_development_dependency 'minitest', '~> 5.0'
   spec.add_development_dependency 'bundler', '~> 1.7'
   spec.add_development_dependency 'rake', '~> 10.0'
-  spec.add_development_dependency 'rubocop', '~> 0.33'
+  spec.add_development_dependency 'rubocop', '= 0.35.1'
   spec.add_development_dependency 'simplecov', '~> 0.9'
   spec.add_runtime_dependency 'net_http_unix', '~> 0.2', '>= 0.2.1'
 end
