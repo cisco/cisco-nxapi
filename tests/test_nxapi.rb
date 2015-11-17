@@ -199,6 +199,7 @@ class TestNxapi < TestCase
   def test_smart_create
     autoclient = Cisco::Shim::Client.create(address, username, password)
     assert_equal(Cisco::Shim::NXAPI::Client, autoclient.class)
-    assert_equal('NXAPI', autoclient.api)
+    assert(autoclient.supports?(:cli))
+    assert_equal(:nexus, autoclient.platform)
   end
 end
