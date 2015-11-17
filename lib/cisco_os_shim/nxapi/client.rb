@@ -242,7 +242,7 @@ module Cisco::Shim::NXAPI
           'sid'           => '1',
           'input'         => "#{command_string}",
           'output_format' => 'json',
-        },
+        }
       }.to_json
       request
     end
