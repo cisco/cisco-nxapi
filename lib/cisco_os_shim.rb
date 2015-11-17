@@ -21,6 +21,7 @@ extensions = ['cisco_os_shim/nxapi',
 extensions.each do |ext|
   begin
     require ext
-  rescue LoadError # rubocop:disable Lint/HandleExceptions
+  rescue LoadError => e
+    raise unless e.message =~ /#{Regexp.escape(ext)}/
   end
 end
