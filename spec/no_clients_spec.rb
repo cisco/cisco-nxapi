@@ -14,8 +14,8 @@ context 'when no client implementations are installed' do
 
   before(:example) do
     allow(main_self).to receive(:require).and_wrap_original do |orig, pkg|
-      fail LoadError if pkg == 'cisco_os_shim/nxapi'
-      fail LoadError if pkg == 'cisco_os_shim/grpc'
+      fail LoadError, pkg if pkg == 'cisco_os_shim/nxapi'
+      fail LoadError, pkg if pkg == 'cisco_os_shim/grpc'
       orig.call(pkg)
     end
   end

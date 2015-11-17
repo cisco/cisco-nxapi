@@ -27,7 +27,7 @@ require 'rubygems'
 gem 'minitest', '~> 5.0'
 require 'minitest/autorun'
 require 'net/telnet'
-require_relative '../lib/cisco_os_shim/cisco_logger'
+require_relative '../lib/cisco_os_shim/core/cisco_logger'
 
 # rubocop:disable Style/ClassVars
 # We *want* the address/username/password class variables to be shared

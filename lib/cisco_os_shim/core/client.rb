@@ -173,7 +173,7 @@ module Cisco::Shim
     #             Default is :ascii
     # @return [String] the output of the show command, if type == :ascii
     # @return [Hash{String=>String}] key-value pairs, if type == :structured
-    def show(command, type=:ascii) # rubocop:disable Lint/UnusedMethodArgument
+    def show(command, type=:ascii)
       # to be implemented by subclasses
     end
   end
