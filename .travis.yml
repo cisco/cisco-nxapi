@@ -8,9 +8,7 @@ cache: bundler
 rvm:
   - 2.2.2
   - 2.1.6
-  # grpc gem doesn't install successfully under 2.0.0:
-  # https://github.com/grpc/grpc/issues/4020
-  # - 2.0.0
+  - 2.0.0
 
 before_install:
   # sudo apt-get install libgrpc-dev doesn't work in Travis.
@@ -22,6 +20,7 @@ before_install:
   - git submodule update --init
   - make
   - sudo make install
+  - (cd src/ruby/ && gem build grpc.gemspec && gem install --local grpc*.gem)
   - cd ..
   - rm -rf grpc
 
