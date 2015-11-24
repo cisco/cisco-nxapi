@@ -2,6 +2,11 @@ require 'rubocop/rake_task'
 require 'rake/testtask'
 require 'rspec/core/rake_task'
 
+def valid_gem?(input_gem)
+  valid_gems = %w(core grpc nxapi)
+  valid_gems.include?(input_gem)
+end
+
 # Test task is not part of default task list,
 # because it requires a node to test against.
 task default: %w(rubocop spec build)
@@ -30,8 +35,16 @@ task spec: [:spec_no_clients,
            ]
 
 task :build do
-  system 'rm ./cisco_os_shim*.gem'
-  Dir['*.gemspec'].each { |gemspec| system "gem build #{gemspec}" }
+  system 'rm -f ./cisco_os_shim*.gem'
+  gem_target = ENV['GEM']
+  fail 'Invalid gem target' unless gem_target.nil? || valid_gem?(gem_target)
+  if gem_target.nil?
+    Dir['*.gemspec'].each { |gemspec| system "gem build #{gemspec}" }
+  else
+    system 'gem build cisco_os_shim.gemspec'
+    next if gem_target == 'core'
+    system "gem build cisco_os_shim-#{gem_target}.gemspec"
+  end
 end
 
 task :validate do
