@@ -7,7 +7,6 @@ AllCops:
     - lib/cisco_os_shim/grpc/ems_services.rb
     # Files we don't own
     - vendor/**/*
-    - grpc/**/*
 
 # Code complexity metrics are tracked separately for lib/ vs. tests/
 # See lib/.rubocop.yml and tests/.rubocop.yml
