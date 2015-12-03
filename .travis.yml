@@ -28,6 +28,8 @@ before_install:
   - cp grpc-*.gem ../../../vendor/cache
   - cd ../../..
   - rm -rf grpc
+  # Also install net_http_unix to keep the nxapi submodule happy
+  - gem install net_http_unix
 
 script:
  - bundle exec rake

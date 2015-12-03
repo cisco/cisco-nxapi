@@ -18,7 +18,7 @@ end
 
 # Add version number to Cisco::Shim namespace
 module Cisco::Shim
-  VERSION = '1.0.0-dev'
+  VERSION = '1.1.0-dev'
 
   gem_version = Gem::Version.new(Gem::VERSION)
   min_gem_version = Gem::Version.new('2.1.0')

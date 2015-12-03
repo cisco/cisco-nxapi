@@ -1,14 +1,14 @@
-# `cisco_os_shim`, `cisco_os_shim-nxapi`, and `cisco_os_shim-grpc`
+# `cisco_os_shim` - Cisco Operating System Shim
 
 [![Gem Version](https://badge.fury.io/rb/cisco_os_shim.svg)](http://badge.fury.io/rb/cisco_os_shim)
 [![Build Status](https://travis-ci.org/cisco/cisco-nxapi.svg?branch=develop)](https://travis-ci.org/cisco/cisco-nxapi)
 
 The `cisco_os_shim` gem provides an abstract interface for communicating with
 Cisco network nodes running various Cisco operating systems. Currently the
-following implementations of this interface are available:
+following nodes and operating systems are supported:
 
-- `cisco_os_shim-nxapi` - client for Nexus switches running NX-OS 7.0(3)I2(1) and later via the NX-API management API.
-- `cisco_os_shim-grpc` - client for routers running IOS XR via gRPC.
+- Nexus switches running NX-OS 7.0(3)I2(1) and later (via the NX-API management API).
+- Routers running IOS XR 6.0.0 and later (via gRPC).
 
 For a greater level of abstraction, use the [CiscoNodeUtils gem](https://rubygems.org/gems/cisco_node_utils).
 
@@ -20,19 +20,13 @@ To install the `cisco_os_shim` gem, use the following command:
 
 (Add `sudo` if you're installing under a POSIX system as root)
 
-Depending on your needs, you will probably also want to install one or more
-of the client implementation gems:
-
-    $ gem install cisco_os_shim-nxapi
-    $ gem install cisco_os_shim-grpc
-
 ## Examples
 
 This gem can be used directly on a Cisco device (as used by Puppet and Chef)
 or can run on a workstation and point to a Cisco device (as used by the
 included minitest suite).
 
-In either case, unless you want to explicitly specify the client implementation class in use, you can simply `require cisco_os_shim` (which will automatically discover available client implementations) and use the `Cisco::Shim::Client.create` API to automatically determine the correct implementation to use.
+In either case, unless you want to explicitly specify the client implementation class in use, you can simply `require 'cisco_os_shim'` (which will automatically discover available client implementations) and use the `Cisco::Shim::Client.create` API to automatically determine the correct implementation to use.
 
 ### Usage on a Cisco device
 

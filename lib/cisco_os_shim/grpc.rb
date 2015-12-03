@@ -14,6 +14,15 @@
 
 require 'cisco_os_shim'
 
+# Fail gracefully if submodule dependencies are not met
+begin
+  require 'grpc'
+rescue LoadError => e
+  raise unless e.message =~ /-- grpc/
+  # If grpc is not installed, raise an error that cisco_os_shim understands.
+  raise LoadError, "Unable to load cisco_os_shim/grpc -- #{e}"
+end
+
 # Namespace for Cisco EMS gRPC-specific code
 module Cisco::Shim::GRPC
 end
