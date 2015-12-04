@@ -30,6 +30,8 @@ module Cisco::Shim::GRPC
   class Client < Cisco::Shim::Client
     Cisco::Shim.register_client(self)
 
+    attr_accessor :timeout
+
     def initialize(address, username, password)
       # TODO: remove if/when we have a local socket to use
       if address.nil? && ENV['NODE']
@@ -50,7 +52,18 @@ module Cisco::Shim::GRPC
       @platform = :ios_xr
 
       # Make sure we can actually connect
-      show('show clock')
+      @timeout = 5
+      begin
+        show('show clock')
+      rescue GRPC::BadStatus => e
+        if e.code == GRPC::Core::StatusCodes::DEADLINE_EXCEEDED
+          raise Cisco::Shim::ConnectionRefused, e.details
+        end
+        raise
+      end
+
+      # Let commands in general take up to 2 minutes
+      @timeout = 120
     end
 
     def validate_args(address, username, password)
@@ -106,7 +119,7 @@ module Cisco::Shim::GRPC
       if args.is_a?(ShowCmdArgs) || args.is_a?(CliConfigArgs)
         debug "  with cli: '#{args.cli}'"
       end
-      response = stub.send(type, args)
+      response = stub.send(type, args, timeout: @timeout)
       output = ''
       if response.kind_of?(Enumerator)
         output = response.map { |reply| handle_reply(args, reply) }
@@ -147,12 +160,16 @@ module Cisco::Shim::GRPC
       debug "Reply includes errors:\n#{reply.errors}"
       # Conveniently for us, all *Reply protobufs in EMS have an errors field
       # Less conveniently, some are JSON and some are not.
-      if reply.is_a?(CliConfigReply)
-        handle_cli_config_error(reply)
-      elsif /^Disallowed commands:/ =~ reply.errors
-        fail Cisco::Shim::RequestNotSupported, reply.errors
+      begin
+        msg = JSON.parse(reply.errors)
+        handle_json_error(msg)
+      rescue JSON::ParserError
+        msg = reply.errors
+      end
+      if /^Disallowed commands:/ =~ msg
+        fail Cisco::Shim::RequestNotSupported, msg
       else
-        fail CliError.new(reply.errors, args.cli)
+        fail CliError.new(msg, args.cli)
       end
     end
     private :handle_reply
@@ -183,7 +200,7 @@ module Cisco::Shim::GRPC
     private :handle_text_output
 
     # Generate a CliError from a failed CliConfigReply
-    def handle_cli_config_error(reply)
+    def handle_json_error(msg)
       # {
       #   "cisco-grpc:errors": {
       #   "error": [
@@ -195,33 +212,48 @@ module Cisco::Shim::GRPC
       #     },
       #     {
       #       ...
-      msg = JSON.parse(reply.errors)
-      msg = msg['cisco-grpc:errors']['error']
-      msg = msg.map { |m| m['error-message'] }
-      # Example msg:
-      # !! SYNTAX/AUTHORIZATION ERRORS: This configuration failed due to
-      # !! one or more of the following reasons:
-      # !!  - the entered commands do not exist,
-      # !!  - the entered commands have errors in their syntax,
-      # !!  - the software packages containing the commands are not active,
-      # !!  - the current user is not a member of a task-group that has
-      # !!    permissions to use the commands.
-      #
-      # foo
-      # bar
-      #
-      rejected = msg.map do |m|
-        match = /\n\n(.*)\n\n\Z/m.match(m)
-        if match.nil?
-          '(see message)'
+
+      # {
+      #   "cisco-grpc:errors": [
+      #     {
+      #       "error-type": "protocol",
+      #       "error-message": "Failed authentication"
+      #     }
+      #   ]
+      # }
+
+      msg = msg['cisco-grpc:errors']
+      msg = msg['error'] unless msg.is_a?(Array)
+      msg.each do |m|
+        type = m['error-type']
+        message = m['error-message']
+        if type == 'protocol' && message == 'Failed authentication'
+          fail Cisco::Shim::AuthenticationFailed, message
+        elsif type == 'application'
+          # Example message:
+          # !! SYNTAX/AUTHORIZATION ERRORS: This configuration failed due to
+          # !! one or more of the following reasons:
+          # !!  - the entered commands do not exist,
+          # !!  - the entered commands have errors in their syntax,
+          # !!  - the software packages containing the commands are not active,
+          # !!  - the current user is not a member of a task-group that has
+          # !!    permissions to use the commands.
+          #
+          # foo
+          # bar
+          #
+          match = /\n\n(.*)\n\n\Z/m.match(message)
+          if match.nil?
+            rejected = '(see message)'
+          else
+            rejected = match[1].split("\n")
+          end
+          fail CliError.new(message, rejected)
         else
-          match[1].split("\n")
+          fail Cisco::Shim::ShimError, message
         end
       end
-      rejected.flatten!
-      msg = msg[0] if msg.length == 1
-      fail CliError.new(msg, rejected)
     end
-    private :handle_cli_config_error
+    private :handle_json_error
   end
 end

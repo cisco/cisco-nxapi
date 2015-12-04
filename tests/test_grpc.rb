@@ -35,6 +35,23 @@ class TestGRPC < TestCase
     @@client
   end
 
+  def test_auth_failure
+    assert_raises Cisco::Shim::AuthenticationFailed do
+      Client.new(address, username, 'wrong password')
+    end
+  end
+
+  def test_connection_failure
+    # Connecting to a port that's listening, but not gRPC is one failure path
+    assert_raises Cisco::Shim::ConnectionRefused do
+      Client.new('127.0.0.1:22', 'user', 'pass')
+    end
+    # Connecting to a port that's not listening is a different failure path
+    assert_raises Cisco::Shim::ConnectionRefused do
+      Client.new('127.0.0.1:0', 'user', 'pass')
+    end
+  end
+
   def test_config_string
     client.config("int gi0/0/0/0\ndescription panda\n")
     run = client.show('show run int gi0/0/0/0')
@@ -136,8 +153,13 @@ show xyzzy
     assert_empty(result)
   end
 
-  # TODO: add structured output test cases
-  # TODO: add negative test cases for connection refused, auth fail, etc.
+  def test_show_ascii_cache
+    result = client.show('show clock', :ascii)
+    sleep 2
+    assert_equal(result, client.show('show clock', :ascii))
+  end
+
+  # TODO: add structured output test cases (when supported on XR)
 
   def test_smart_create
     autoclient = Cisco::Shim::Client.create(address, username, password)
