@@ -7,7 +7,8 @@ Gem::Specification.new do |spec|
   spec.name          = 'cisco_os_shim'
   spec.version       = Cisco::Shim::VERSION
   spec.authors       = ['Rob Gries', 'Alex Hunsberger', 'Glenn Matthews',
-                        'Chris Van Heuveln', 'Mike Wiebe', 'Jie Yang']
+                        'Chris Van Heuveln', 'Rich Wellum', 'Mike Wiebe',
+                        'Jie Yang']
   spec.email         = 'cisco_agent_gem@cisco.com'
   spec.summary       = \
     'Abstraction layer for Cisco APIs (NX-OS NXAPI, IOS XR gRPC, etc.)'
