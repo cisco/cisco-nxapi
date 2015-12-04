@@ -35,6 +35,23 @@ class TestGRPC < TestCase
     @@client
   end
 
+  def test_auth_failure
+    assert_raises Cisco::Shim::AuthenticationFailed do
+      Client.new(address, username, 'wrong password')
+    end
+  end
+
+  def test_connection_failure
+    # Connecting to a port that's listening, but not gRPC is one failure path
+    assert_raises Cisco::Shim::ConnectionRefused do
+      Client.new('127.0.0.1:22', 'user', 'pass')
+    end
+    # Connecting to a port that's not listening is a different failure path
+    assert_raises Cisco::Shim::ConnectionRefused do
+      Client.new('127.0.0.1:0', 'user', 'pass')
+    end
+  end
+
   def test_config_string
     client.config("int gi0/0/0/0\ndescription panda\n")
     run = client.show('show run int gi0/0/0/0')
@@ -49,43 +66,66 @@ class TestGRPC < TestCase
 
   def test_config_invalid
     e = assert_raises CliError do
-      client.config(['int gi0/0/0/0', 'wark'])
+      client.config(['int gi0/0/0/0', 'wark', 'bark'])
     end
-    # TODO: we need to parse the error message more precisely
-    assert_match(/wark/, e.message)
+    # rubocop:disable Style/TrailingWhitespace
+    assert_equal('The following commands were rejected:
+  wark
+  bark
+with error:
+
+!! SYNTAX/AUTHORIZATION ERRORS: This configuration failed due to
+!! one or more of the following reasons:
+!!  - the entered commands do not exist,
+!!  - the entered commands have errors in their syntax,
+!!  - the software packages containing the commands are not active,
+!!  - the current user is not a member of a task-group that has 
+!!    permissions to use the commands.
+
+wark
+bark
+
+', e.message)
+    # rubocop:enable Style/TrailingWhitespace
     # Unlike NXAPI, a gRPC config command is always atomic
     assert_empty(e.successful_input)
-    # TODO
-    assert_equal('input TODO', e.rejected_input)
+    assert_equal(%w(wark bark), e.rejected_input)
   end
 
   def test_exec
-    result = client.exec('run echo hello')
-    assert_match(/^hello$/, result)
+    # gRPC only allows 'show' commands:
+    result = client.exec('show inventory')
+    s = @device.cmd('show inventory')
+    # Strip the leading timestamp and trailing prompt from the telnet output
+    s = s.split("\n")[2..-2].join("\n")
+    assert_equal(s.rstrip, result)
+  end
+
+  def test_exec_disallowed
+    e = assert_raises Cisco::Shim::RequestNotSupported do
+      client.exec('run echo hello')
+    end
+    assert_match(/Disallowed.*run echo hello/, e.message)
   end
 
   def test_exec_invalid
     e = assert_raises CliError do
-      client.exec('xyzzy')
+      client.exec('show xyzzy')
     end
-    # TODO: we need to parse the error message more precisely
-    assert_match('xyzzy', e.message)
+    assert_equal("The command 'show xyzzy' was rejected with error:
+show xyzzy
+      ^
+% Invalid input detected at '^' marker.", e.message)
     assert_empty(e.successful_input)
-    # TODO
-    assert_equal('input TODO', e.rejected_input)
-  end
-
-  def test_exec_too_long
-    assert_raises CliError do
-      client.exec('0' * 500_000)
-    end
-    # TODO: error message validation
+    assert_equal('show xyzzy', e.rejected_input)
   end
 
   def test_show_ascii_default
     result = client.show('show debug')
     s = @device.cmd('show debug')
-    assert_equal(result.strip, s.split("\n")[2].strip)
+    # Strip the leading timestamp and trailing prompt from the telnet output
+    s = s.split("\n")[2..-2].join("\n")
+    assert_equal(s, result)
   end
 
   def test_show_ascii_invalid
@@ -103,7 +143,9 @@ class TestGRPC < TestCase
   def test_show_ascii_explicit
     result = client.show('show debug', :ascii)
     s = @device.cmd('show debug')
-    assert_equal(result.strip, s.split("\n")[2].strip)
+    # Strip the leading timestamp and trailing prompt from the telnet output
+    s = s.split("\n")[2..-2].join("\n")
+    assert_equal(s, result)
   end
 
   def test_show_ascii_empty
@@ -111,8 +153,13 @@ class TestGRPC < TestCase
     assert_empty(result)
   end
 
-  # TODO: add structured output test cases
-  # TODO: add negative test cases for connection refused, auth fail, etc.
+  def test_show_ascii_cache
+    result = client.show('show clock', :ascii)
+    sleep 2
+    assert_equal(result, client.show('show clock', :ascii))
+  end
+
+  # TODO: add structured output test cases (when supported on XR)
 
   def test_smart_create
     autoclient = Cisco::Shim::Client.create(address, username, password)

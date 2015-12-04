@@ -3,31 +3,23 @@ lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'cisco_os_shim/core/version'
 
-plugin_files = Dir['cisco_os_shim-*.gemspec'].map do |gemspec|
-  eval(File.read(gemspec)).files # rubocop:disable Lint/Eval
-end
-plugin_files = plugin_files.flatten.uniq
-
 Gem::Specification.new do |spec|
   spec.name          = 'cisco_os_shim'
   spec.version       = Cisco::Shim::VERSION
-  spec.authors       = ['Glenn Matthews']
+  spec.authors       = ['Rob Gries', 'Alex Hunsberger', 'Glenn Matthews',
+                        'Chris Van Heuveln', 'Rich Wellum', 'Mike Wiebe',
+                        'Jie Yang']
   spec.email         = 'cisco_agent_gem@cisco.com'
   spec.summary       = \
     'Abstraction layer for Cisco APIs (NX-OS NXAPI, IOS XR gRPC, etc.)'
   spec.description   = <<-EOF
 Abstraction layer for Cisco APIs (NX-OS NXAPI, IOS XR gRPC, etc.)
 Designed to be used with Puppet and Chef and the cisco_node_utils gem.
-
-Does not provide any API implementation in itself - you must install at
-least one of the extension Gems:
-- cisco_os_shim-nxapi
-- cisco_os_shim-grpc
   EOF
   spec.license       = 'Apache-2.0'
   spec.homepage      = 'https://github.com/cisco/cisco-nxapi'
 
-  spec.files         = `git ls-files`.split("\n") - plugin_files
+  spec.files         = `git ls-files`.split("\n")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
@@ -41,4 +33,6 @@ least one of the extension Gems:
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'rubocop', '= 0.35.1'
   spec.add_development_dependency 'simplecov', '~> 0.9'
+
+  spec.extensions = ['ext/mkrf_conf.rb']
 end

@@ -108,7 +108,8 @@ class TestCase < Minitest::Test
     CiscoLogger.debug_enable if ARGV[3] == 'debug' || ENV['DEBUG'] == '1'
   rescue Errno::ECONNREFUSED
     puts 'Telnet login refused - please check that the IP address is correct'
-    puts "  and that you have enabled 'feature telnet' on the UUT"
+    puts "  and that you have configured 'feature telnet' (NX-OS) or "
+    puts "  'telnet ipv4 server...' (IOS XR) on the UUT"
     exit
   end
 

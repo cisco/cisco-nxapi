@@ -12,7 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'cisco_os_shim'
+require_relative 'core'
+
+# Fail gracefully if submodule dependencies are not met
+begin
+  require 'net_http_unix'
+rescue LoadError => e
+  raise unless e.message =~ /-- net_http_unix/
+  # If grpc is not installed, raise an error that cisco_os_shim understands.
+  raise LoadError, "Unable to load cisco_os_shim/nxapi -- #{e}"
+end
 
 # Namespace for Cisco NXAPI-specific code
 module Cisco::Shim::NXAPI
