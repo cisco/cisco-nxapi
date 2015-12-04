@@ -49,5 +49,21 @@ module Cisco::Shim
       @rejected_input = rejected_input
       @successful_input = successful_input
     end
+
+    def to_s
+      s = ''
+      if rejected_input.is_a?(Array)
+        if rejected_input.length > 1
+          s += "The following commands were rejected:\n"
+          s += "  #{rejected_input.join("\n  ")}\n"
+        else
+          s += "The command '#{rejected_input.first}' was rejected "
+        end
+      else
+        s += "The command '#{rejected_input}' was rejected "
+      end
+      s += "with error:\n#{super}"
+      s
+    end
   end
 end

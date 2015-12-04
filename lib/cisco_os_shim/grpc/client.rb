@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'cisco_os_shim'
+require_relative '../core/client'
 require 'grpc'
 require 'json'
 require_relative 'ems_services'
@@ -102,14 +102,17 @@ module Cisco::Shim::GRPC
         return @cache_hash[type][args.cli]
       end
 
-      debug "Sending '#{type}' request with args: '#{args}'"
+      debug "Sending '#{type}' request:"
+      if args.is_a?(ShowCmdArgs) || args.is_a?(CliConfigArgs)
+        debug "  with cli: '#{args.cli}'"
+      end
       response = stub.send(type, args)
       output = ''
       if response.kind_of?(Enumerator)
-        output = response.map { |reply| handle_reply(type, reply) }
+        output = response.map { |reply| handle_reply(args, reply) }
         output = output[0] if output.length == 1
       else
-        output = handle_reply(type, response)
+        output = handle_reply(args, response)
       end
 
       @cache_hash[type][args.cli] = output if cache_enable? && !output.empty?
@@ -126,15 +129,16 @@ module Cisco::Shim::GRPC
     end
     private :req
 
-    def handle_reply(type, reply)
-      debug "Handling '#{type}' reply:\n#{reply}"
+    def handle_reply(args, reply)
+      debug "Handling '#{reply.class}' reply:"
+      debug "  output: #{reply.output}" if reply.is_a?(ShowCmdTextReply)
+      debug "  jsonoutput: #{reply.jsonoutput}" if reply.is_a?(ShowCmdJSONReply)
       if reply.errors.empty?
+        debug "  errors: '#{reply.errors}'"
         output = ''
-        if type == 'show_cmd_text_output'
-          # The output begins with \n<command>\n
-          # which we don't really need. Discard it.
-          output = reply.output.split("\n")[2..-1].join("\n")
-        elsif type == 'show_cmd_json_output'
+        if reply.is_a?(ShowCmdTextReply)
+          output = handle_text_output(args, reply.output)
+        elsif reply.is_a?(ShowCmdJSONReply)
           output = reply.jsonoutput
         end
         debug "Success with output:\n#{output}"
@@ -143,26 +147,81 @@ module Cisco::Shim::GRPC
       debug "Reply includes errors:\n#{reply.errors}"
       # Conveniently for us, all *Reply protobufs in EMS have an errors field
       # Less conveniently, some are JSON and some are not.
-      if type == 'cli_config'
-        # {
-        #   "cisco-grpc:errors": {
-        #   "error": [
-        #     {
-        #       "error-type": "application",
-        #       "error-tag": "operation-failed",
-        #       "error-severity": "error",
-        #       "error-message": "....",
-        #     },
-        #     {
-        #       ...
-        msg = JSON.parse(reply.errors)
-        msg = msg['cisco-grpc:errors']['error']
-        msg = msg.map { |m| m['error-message'] }
-        fail CliError.new(msg, 'input TODO')
+      if reply.is_a?(CliConfigReply)
+        handle_cli_config_error(reply)
+      elsif /^Disallowed commands:/ =~ reply.errors
+        fail Cisco::Shim::RequestNotSupported, reply.errors
       else
-        fail CliError.new(reply.errors, 'input TODO')
+        fail CliError.new(reply.errors, args.cli)
       end
     end
     private :handle_reply
+
+    def handle_text_output(args, output)
+      # For a successful show command, gRPC presents the output as:
+      # \n--------- <cmd> ----------
+      # \n<output of command>
+      # \n\n
+
+      # For an invalid CLI, gRPC presents the output as:
+      # \n--------- <cmd> --------
+      # \n<cmd>
+      # \n<error output>
+      # \n\n
+
+      # Discard the leading whitespace, header, and trailing whitespace
+      output = output.split("\n").drop(2)
+      return '' if output.nil? || output.empty?
+
+      # Now we have either [<output_line_1>, <output_line_2>, ...] or
+      # [<cmd>, <error_line_1>, <error_line_2>, ...]
+      if output[0].strip == args.cli.strip
+        fail CliError.new(output.join("\n"), args.cli)
+      end
+      output.join("\n")
+    end
+    private :handle_text_output
+
+    # Generate a CliError from a failed CliConfigReply
+    def handle_cli_config_error(reply)
+      # {
+      #   "cisco-grpc:errors": {
+      #   "error": [
+      #     {
+      #       "error-type": "application",
+      #       "error-tag": "operation-failed",
+      #       "error-severity": "error",
+      #       "error-message": "....",
+      #     },
+      #     {
+      #       ...
+      msg = JSON.parse(reply.errors)
+      msg = msg['cisco-grpc:errors']['error']
+      msg = msg.map { |m| m['error-message'] }
+      # Example msg:
+      # !! SYNTAX/AUTHORIZATION ERRORS: This configuration failed due to
+      # !! one or more of the following reasons:
+      # !!  - the entered commands do not exist,
+      # !!  - the entered commands have errors in their syntax,
+      # !!  - the software packages containing the commands are not active,
+      # !!  - the current user is not a member of a task-group that has
+      # !!    permissions to use the commands.
+      #
+      # foo
+      # bar
+      #
+      rejected = msg.map do |m|
+        match = /\n\n(.*)\n\n\Z/m.match(m)
+        if match.nil?
+          '(see message)'
+        else
+          match[1].split("\n")
+        end
+      end
+      rejected.flatten!
+      msg = msg[0] if msg.length == 1
+      fail CliError.new(msg, rejected)
+    end
+    private :handle_cli_config_error
   end
 end

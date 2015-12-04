@@ -20,7 +20,7 @@ extensions = ['cisco_os_shim/nxapi',
              ]
 extensions.each do |ext|
   begin
-    require ext
+    require_relative ext
   rescue LoadError => e
     # ignore missing cisco_os_shim-(grpc|nxapi), they're not always required
     raise unless e.message =~ /#{Regexp.escape(ext)}/

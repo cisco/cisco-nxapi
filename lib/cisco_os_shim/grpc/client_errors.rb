@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-require 'cisco_os_shim'
+require_relative '../core/client_errors'
 
 module Cisco::Shim::GRPC
   class CliError < Cisco::Shim::RequestFailed
