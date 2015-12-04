@@ -53,7 +53,10 @@ class TestNxapi < TestCase
     e = assert_raises CliError do
       client.config(['int et1/1', 'exit', 'int et1/2', 'plover'])
     end
-    assert_match(/plover.*% Invalid command\n/, e.message)
+    assert_equal("The command 'plover' was rejected with error:
+CLI execution error
+% Invalid command
+", e.message)
     assert_equal('plover', e.rejected_input)
     assert_equal(['int et1/1', 'exit', 'int et1/2'], e.successful_input)
 
@@ -71,7 +74,15 @@ class TestNxapi < TestCase
     e = assert_raises CliError do
       client.exec('xyzzy')
     end
-    assert_match(/xyzzy.*Syntax error/, e.message)
+    # rubocop:disable Style/TrailingWhitespace
+    assert_equal("The command 'xyzzy' was rejected with error:
+Input CLI command error
+Syntax error while parsing  xyzzy 
+
+
+Cmd exec error.
+", e.message)
+    # rubocop:enable Style/TrailingWhitespace
     assert_equal('xyzzy', e.rejected_input)
     assert_empty(e.successful_input)
 

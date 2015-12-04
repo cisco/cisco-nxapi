@@ -24,8 +24,7 @@ module Cisco::Shim::NXAPI
   class CliError < Cisco::Shim::RequestFailed
     attr_reader :clierror, :msg, :code
     def initialize(input, msg, code, clierror, previous)
-      super("CliError: '#{input} rejected with message: '#{clierror}'",
-            input, previous)
+      super("#{msg}\n#{clierror}", input, previous)
       @clierror = clierror
       @msg = msg
       @code = code
