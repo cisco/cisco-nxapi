@@ -17,7 +17,7 @@ Abstraction layer for Cisco APIs (NX-OS NXAPI, IOS XR gRPC, etc.)
 Designed to be used with Puppet and Chef and the cisco_node_utils gem.
   EOF
   spec.license       = 'Apache-2.0'
-  spec.homepage      = 'https://github.com/cisco/cisco-nxapi'
+  spec.homepage      = 'https://github.com/cisco/cisco-os-shim'
 
   spec.files         = `git ls-files`.split("\n")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
