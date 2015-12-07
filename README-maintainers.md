@@ -1,6 +1,6 @@
 # Maintainers Guide
 
-Guidelines for the core maintainers of the cisco-nxapi project - above and beyond the [general developer guidelines](https://github.com/cisco/cisco-nxapi/blob/master/CONTRIBUTING.md).
+Guidelines for the core maintainers of the cisco_os_shim project - above and beyond the [general developer guidelines](https://github.com/cisco/cisco-nxapi/blob/master/CONTRIBUTING.md).
 
 ## Accepting Pull Requests
 
@@ -73,6 +73,6 @@ When we agree as a team that a new release should be published, the process is a
 5. Publish the new gem version to rubygems.org:
 
     ```
-    gem build cisco_nxapi.gemspec
-    gem push cisco-nxapi-1.0.1.gem
+    gem build cisco_os_shim.gemspec
+    gem push cisco_os_shim-1.0.1.gem
     ```

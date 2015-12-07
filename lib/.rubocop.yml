@@ -1,13 +1,13 @@
 inherit_from: ../.rubocop.yml
 
 Metrics/AbcSize:
-  Max: 43
+  Max: 35
 
 Metrics/CyclomaticComplexity:
   Max: 13
 
 Metrics/MethodLength:
-  Max: 39
+  Max: 35
 
 Metrics/PerceivedComplexity:
-  Max: 15
+  Max: 13

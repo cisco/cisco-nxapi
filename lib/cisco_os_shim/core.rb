@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Add version number to CiscoNxapi namespace
-module CiscoNxapi
-  VERSION = '1.0.0'
-  gem_version = Gem::Version.new(Gem::VERSION)
-  min_gem_version = Gem::Version.new('2.1.0')
-  fail 'Required rubygems version >= 2.1.0' if gem_version < min_gem_version
+# Namespace for Cisco-specific code
+module Cisco
+  # Namespace for Cisco OS Shim code
+  module Shim
+  end
 end
+
+# Auto-load all Ruby files in the subdirectory
+Dir.glob(__dir__ + '/core/*.rb') { |file| require file }

@@ -27,7 +27,7 @@ module CiscoLogger
   # Figure out what provider logging utility we
   # should use: Puppet or Chef.
   # If not found use the Ruby Logger/STDOUT/INFO.
-  if defined? (Puppet)
+  if defined? (Puppet::Util::Logging)
     @@logger = Puppet # rubocop:disable Style/ClassVars
     def error(string)
       @@logger.err(string)

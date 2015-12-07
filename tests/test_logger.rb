@@ -15,7 +15,7 @@
 # limitations under the License.
 
 require_relative 'basetest'
-require_relative '../lib/cisco_nxapi/cisco_logger'
+require_relative '../lib/cisco_os_shim/core/cisco_logger'
 
 # TestLogger - unit tests for CiscoLogger module
 class TestLogger < TestCase

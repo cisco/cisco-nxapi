@@ -15,7 +15,9 @@
 # limitations under the License.
 
 require_relative 'basetest'
-require_relative '../lib/cisco_nxapi/cisco_nxapi'
+require_relative '../lib/cisco_os_shim'
+
+include Cisco::Shim::NXAPI
 
 # TestNxapi - NXAPI client unit tests
 class TestNxapi < TestCase
@@ -23,7 +25,7 @@ class TestNxapi < TestCase
 
   def client
     unless @@client
-      client = CiscoNxapi::NxapiClient.new(address, username, password)
+      client = Client.new(address, username, password)
       client.cache_enable = true
       client.cache_auto = true
       @@client = client # rubocop:disable Style/ClassVars
@@ -48,14 +50,19 @@ class TestNxapi < TestCase
   end
 
   def test_config_invalid
-    e = assert_raises CiscoNxapi::CliError do
+    e = assert_raises CliError do
       client.config(['int et1/1', 'exit', 'int et1/2', 'plover'])
     end
-    assert_equal('plover', e.input)
+    assert_equal("The command 'plover' was rejected with error:
+CLI execution error
+% Invalid command
+", e.message)
+    assert_equal('plover', e.rejected_input)
+    assert_equal(['int et1/1', 'exit', 'int et1/2'], e.successful_input)
+
+    assert_equal("% Invalid command\n", e.clierror)
     assert_equal('CLI execution error', e.msg)
     assert_equal('400', e.code)
-    assert_equal("% Invalid command\n", e.clierror)
-    assert_equal(['int et1/1', 'exit', 'int et1/2'], e.previous)
   end
 
   def test_exec
@@ -64,18 +71,28 @@ class TestNxapi < TestCase
   end
 
   def test_exec_invalid
-    e = assert_raises CiscoNxapi::CliError do
+    e = assert_raises CliError do
       client.exec('xyzzy')
     end
-    assert_equal('xyzzy', e.input)
+    # rubocop:disable Style/TrailingWhitespace
+    assert_equal("The command 'xyzzy' was rejected with error:
+Input CLI command error
+Syntax error while parsing  xyzzy 
+
+
+Cmd exec error.
+", e.message)
+    # rubocop:enable Style/TrailingWhitespace
+    assert_equal('xyzzy', e.rejected_input)
+    assert_empty(e.successful_input)
+
+    assert_match(/Syntax error/, e.clierror)
     assert_equal('Input CLI command error', e.msg)
     assert_equal('400', e.code)
-    assert_match(/Syntax error/, e.clierror)
-    assert_equal([], e.previous)
   end
 
   def test_exec_too_long
-    assert_raises CiscoNxapi::NxapiError do
+    assert_raises Cisco::Shim::RequestNotSupported do
       client.exec('0' * 500_000)
     end
   end
@@ -87,13 +104,13 @@ class TestNxapi < TestCase
   end
 
   def test_show_ascii_invalid
-    assert_raises CiscoNxapi::CliError do
+    assert_raises CliError do
       client.show('show plugh')
     end
   end
 
   def test_element_show_ascii_incomplete
-    assert_raises CiscoNxapi::CliError do
+    assert_raises CliError do
       client.show('show ')
     end
   end
@@ -116,7 +133,7 @@ class TestNxapi < TestCase
   end
 
   def test_show_structured_invalid
-    assert_raises CiscoNxapi::CliError do
+    assert_raises CliError do
       client.show('show frobozz', :structured)
     end
   end
@@ -124,7 +141,7 @@ class TestNxapi < TestCase
   def test_show_structured_unsupported
     # TBD: n3k DOES support structured for this command,
     #  n9k DOES NOT support structured for this command
-    assert_raises CiscoNxapi::RequestNotSupported do
+    assert_raises Cisco::Shim::RequestNotSupported do
       client.show('show snmp internal globals', :structured)
     end
   end
@@ -134,25 +151,25 @@ class TestNxapi < TestCase
     @device.cmd('no feature nxapi')
     @device.cmd('end')
     client.cache_flush
-    assert_raises CiscoNxapi::ConnectionRefused do
+    assert_raises Cisco::Shim::ConnectionRefused do
       client.show('show version')
     end
-    assert_raises CiscoNxapi::ConnectionRefused do
+    assert_raises Cisco::Shim::ConnectionRefused do
       client.exec('show version')
     end
-    assert_raises CiscoNxapi::ConnectionRefused do
+    assert_raises Cisco::Shim::ConnectionRefused do
       client.config('interface Et1/1')
     end
     # On the off chance that things behave differently when NXAPI is
     # disabled while we're connected, versus trying to connect afresh...
     @@client = nil # rubocop:disable Style/ClassVars
-    assert_raises CiscoNxapi::ConnectionRefused do
+    assert_raises Cisco::Shim::ConnectionRefused do
       client.show('show version')
     end
-    assert_raises CiscoNxapi::ConnectionRefused do
+    assert_raises Cisco::Shim::ConnectionRefused do
       client.exec('show version')
     end
-    assert_raises CiscoNxapi::ConnectionRefused do
+    assert_raises Cisco::Shim::ConnectionRefused do
       client.config('interface Et1/1')
     end
 
@@ -167,13 +184,13 @@ class TestNxapi < TestCase
     end
     client.password = 'wrong_password'
     client.cache_flush
-    assert_raises CiscoNxapi::HTTPUnauthorized do
+    assert_raises HTTPUnauthorized do
       client.show('show version')
     end
-    assert_raises CiscoNxapi::HTTPUnauthorized do
+    assert_raises HTTPUnauthorized do
       client.exec('show version')
     end
-    assert_raises CiscoNxapi::HTTPUnauthorized do
+    assert_raises HTTPUnauthorized do
       client.config('interface Et1/1')
     end
     client.password = password
@@ -185,8 +202,15 @@ class TestNxapi < TestCase
       req('hello', 'world')
     end
 
-    assert_raises CiscoNxapi::RequestNotSupported do
+    assert_raises Cisco::Shim::RequestNotSupported do
       client.hello
     end
+  end
+
+  def test_smart_create
+    autoclient = Cisco::Shim::Client.create(address, username, password)
+    assert_equal(Cisco::Shim::NXAPI::Client, autoclient.class)
+    assert(autoclient.supports?(:cli))
+    assert_equal(:nexus, autoclient.platform)
   end
 end

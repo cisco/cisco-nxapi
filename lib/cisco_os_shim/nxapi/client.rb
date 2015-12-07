@@ -16,55 +16,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require_relative '../core'
 require 'json'
-require_relative 'cisco_logger'
+require 'net/http'
+require_relative 'client_errors'
 
 include CiscoLogger
-require 'net/http'
 
 # Namespace for all NXAPI-related functionality and classes.
-module CiscoNxapi
-  # NxapiError is an abstract parent class for all errors raised by this module
-  class NxapiError < RuntimeError
-  end
-
-  # CliError indicates that the node rejected the CLI as invalid.
-  class CliError < NxapiError
-    attr_reader :input, :msg, :code, :clierror, :previous
-    def initialize(input, msg, code, clierror, previous)
-      @input = input
-      @msg = msg
-      @code = code
-      @clierror = clierror
-      @previous = previous
-    end
-
-    def to_s
-      "CliError: '#{@input}' rejected with message: '#{clierror}'"
-    end
-
-    def message
-      to_s
-    end
-  end
-
-  # RequestNotSupported means we requested structured output for a CLI
-  # that doesn't currently support structured output
-  class RequestNotSupported < NxapiError
-  end
-
-  # ConnectionRefused means the NXAPI server isn't listening
-  class ConnectionRefused < NxapiError
-  end
-
-  # HTTPBadRequest means we did something wrong in our request
-  class HTTPBadRequest < NxapiError
-  end
-
-  # HTTPUnauthorized means we provided incorrect credentials
-  class HTTPUnauthorized < NxapiError
-  end
-
+module Cisco::Shim::NXAPI
   # Location of unix domain socket for NXAPI localhost
   NXAPI_UDS = '/tmp/nginx_local/nginx_1_be_nxapi.sock'
   # NXAPI listens for remote connections to "http://<switch IP>/ins"
@@ -75,78 +35,62 @@ module CiscoNxapi
   NXAPI_VERSION = '1.0'
 
   # Class representing an HTTP client connecting to a NXAPI server.
-  class NxapiClient
-    # Constructor for NxapiClient. By default this connects to the local
+  class Client < Cisco::Shim::Client
+    Cisco::Shim.register_client(self)
+
+    # Constructor for Client. By default this connects to the local
     # unix domain socket. If you need to connect to a remote device,
     # you must provide the address/username/password parameters.
     def initialize(address=nil, username=nil, password=nil)
+      super
       # Default: connect to unix domain socket on localhost, if available
       if address.nil?
-        if File.socket?(NXAPI_UDS)
-          # net_http_unix provides NetX::HTTPUnix, a small subclass of Net::HTTP
-          # which supports connection to local unix domain sockets. We need this
-          # in order to run natively under NX-OS but it's not needed for off-box
-          # unit testing where the base Net::HTTP will meet our needs.
-          require 'net_http_unix'
-          @http = NetX::HTTPUnix.new('unix://' + NXAPI_UDS)
-        else
-          fail "No address specified but no UDS found at #{NXAPI_UDS} either"
+        unless File.socket?(NXAPI_UDS)
+          fail Cisco::Shim::ConnectionRefused, \
+               "No address specified but no UDS found at #{NXAPI_UDS} either"
         end
+        # net_http_unix provides NetX::HTTPUnix, a small subclass of Net::HTTP
+        # which supports connection to local unix domain sockets. We need this
+        # in order to run natively under NX-OS but it's not needed for off-box
+        # unit testing where the base Net::HTTP will meet our needs.
+        require 'net_http_unix'
+        @http = NetX::HTTPUnix.new('unix://' + NXAPI_UDS)
       else
-        fail TypeError, 'invalid address' unless address.is_a?(String)
-        fail ArgumentError, 'empty address' if address.empty?
         # Remote connection. This is primarily expected
         # when running e.g. from a Unix server as part of Minitest.
         @http = Net::HTTP.new(address)
-        # In this case, a username and password are mandatory
-        fail TypeError if username.nil? || password.nil?
       end
       # The default read time out is 60 seconds, which may be too short for
       # scaled configuration to apply. Change it to 300 seconds, which is
       # also used as the default config by firefox.
       @http.read_timeout = 300
+      @address = @http.address
+      @platform = :nexus
 
-      unless username.nil?
-        fail TypeError, 'invalid username' unless username.is_a?(String)
-        fail ArgumentError, 'empty username' unless username.length > 0
-      end
-      unless password.nil?
-        fail TypeError, 'invalid password' unless password.is_a?(String)
-        fail ArgumentError, 'empty password' unless password.length > 0
-      end
-      @username = username
-      @password = password
-      @cache_enable = true
-      @cache_auto = true
-      cache_flush
+      # Make sure we can actually connect to the socket
+      show('show hostname')
     end
 
-    def to_s
-      @http.address
+    def validate_args(address, username, password)
+      super
+      if address.nil?
+        # Connection to UDS - no username or password either
+        fail ArgumentError unless username.nil? && password.nil?
+      else
+        fail ArgumentError, 'no port number permitted' if address =~ /:/
+        # Connection to remote system - username and password are required
+        fail TypeError, 'username is required' if username.nil?
+        fail TypeError, 'password is required' if password.nil?
+      end
     end
 
-    def inspect
-      "<NxapiClient of #{@http.address}>"
+    def supports?(api)
+      (api == :cli)
     end
 
     def reload
       # no-op for now
     end
-
-    def cache_enable?
-      @cache_enable
-    end
-
-    def cache_enable=(enable)
-      @cache_enable = enable
-      cache_flush unless enable
-    end
-
-    def cache_auto?
-      @cache_auto
-    end
-
-    attr_writer :cache_auto
 
     # Clear the cache of CLI output results.
     #
@@ -163,14 +107,13 @@ module CiscoNxapi
 
     # Configure the given command(s) on the device.
     #
-    # @raise [CiscoNxapi::CliError] if any command is rejected by the device
+    # @raise [CliError] if any command is rejected by the device
     #
     # @param commands [String, Array<String>] either of:
     #   1) The configuration sequence, as a newline-separated string
     #   2) An array of command strings (one command per string, no newlines)
     def config(commands)
-      cache_flush if cache_auto?
-
+      super
       if commands.is_a?(String)
         commands = commands.split(/\n/)
       elsif !commands.is_a?(Array)
@@ -189,7 +132,7 @@ module CiscoNxapi
     # @return [String, nil] the body of the output of the exec command
     #   (if any)
     def exec(command)
-      cache_flush if cache_auto?
+      super
       req('cli_show_ascii', command)
     end
 
@@ -200,9 +143,9 @@ module CiscoNxapi
     # multiple calls to the same "show" command may return cached data
     # rather than querying the device repeatedly.
     #
-    # @raise [CiscoNxapi::RequestNotSupported] if
+    # @raise [RequestNotSupported] if
     #   structured output is requested but the given command can't provide it.
-    # @raise [CiscoNxapi::CliError] if the command is rejected by the device
+    # @raise [CliError] if the command is rejected by the device
     #
     # @param command [String] the show command to execute
     # @param type [:ascii, :structured] ASCII or structured output.
@@ -210,6 +153,7 @@ module CiscoNxapi
     # @return [String] the output of the show command, if type == :ascii
     # @return [Hash{String=>String}] key-value pairs, if type == :structured
     def show(command, type=:ascii)
+      super
       if type == :ascii
         return req('cli_show_ascii', command)
       elsif type == :structured
@@ -221,11 +165,11 @@ module CiscoNxapi
 
     # Sends a request to the NX API and returns the body of the request or
     # handles errors that happen.
-    # @raise CiscoNxapi::ConnectionRefused if NXAPI is disabled
-    # @raise CiscoNxapi::HTTPUnauthorized if username/password are invalid
-    # @raise CiscoNxapi::HTTPBadRequest (should never occur)
-    # @raise CiscoNxapi::RequestNotSupported
-    # @raise CiscoNxapi::CliError if any command is rejected as invalid
+    # @raise ConnectionRefused if NXAPI is disabled
+    # @raise HTTPUnauthorized if username/password are invalid
+    # @raise HTTPBadRequest (should never occur)
+    # @raise RequestNotSupported
+    # @raise CliError if any command is rejected as invalid
     #
     # @param type ["cli_show", "cli_show_ascii"] Specifies the type of command
     #             to be executed.
@@ -257,17 +201,10 @@ module CiscoNxapi
         response = @http.request(request)
       rescue Errno::ECONNREFUSED, Errno::ECONNRESET
         emsg = 'Connection refused or reset. Is the NX-API feature enabled?'
-        raise ConnectionRefused, emsg
+        raise Cisco::Shim::ConnectionRefused, emsg
       end
       handle_http_response(response)
-      body = JSON.parse(response.body)
-      # In case of an error the JSON may not be complete, so we need to
-      # proceed carefully, as blindly doing body["ins_api"]["outputs"]["output"]
-      # could throw an error otherwise.
-      output = body['ins_api']
-      fail NxapiError, "unexpected JSON output:\n#{body}" unless output
-      output = output['outputs'] if output['outputs']
-      output = output['output'] if output['output']
+      output = parse_response(response)
 
       prev_cmds = []
       if output.is_a?(Array)
@@ -316,13 +253,32 @@ module CiscoNxapi
       case response
       when Net::HTTPUnauthorized
         emsg = 'HTTP 401 Unauthorized. Are your NX-API credentials correct?'
-        fail CiscoNxapi::HTTPUnauthorized, emsg
+        fail HTTPUnauthorized, emsg
       when Net::HTTPBadRequest
         emsg = "HTTP 400 Bad Request\n#{response.body}"
-        fail CiscoNxapi::HTTPBadRequest, emsg
+        fail HTTPBadRequest, emsg
       end
     end
     private :handle_http_response
+
+    def parse_response(response)
+      body = JSON.parse(response.body)
+
+      # In case of an error the JSON may not be complete, so we need to
+      # proceed carefully, as blindly doing body["ins_api"]["outputs"]["output"]
+      # could throw an error otherwise.
+      output = body['ins_api']
+      if output.nil?
+        fail Cisco::Shim::ShimError, "unexpected JSON output:\n#{body}"
+      end
+      output = output['outputs'] if output['outputs']
+      output = output['output'] if output['output']
+
+      output
+    rescue JSON::ParserError
+      raise Cisco::Shim::ShimError, "response is not JSON:\n#{body}"
+    end
+    private :parse_response
 
     def handle_output(prev_cmds, command, output)
       if output['code'] == '400'
@@ -332,12 +288,12 @@ module CiscoNxapi
                           output['clierror'], prev_cmds)
       elsif output['code'] == '413'
         # Request too large
-        fail NxapiError, "Error 413: #{output['msg']}"
+        fail Cisco::Shim::RequestNotSupported, "Error 413: #{output['msg']}"
       elsif output['code'] == '501'
         # if structured output is not supported for this command,
         # raise an exception so that the calling function can
         # handle accordingly
-        fail RequestNotSupported, \
+        fail Cisco::Shim::RequestNotSupported, \
              "Structured output not supported for #{command}"
       else
         debug("Result for '#{command}': #{output['msg']}")
