@@ -1,7 +1,7 @@
 # `cisco_os_shim` - Cisco Operating System Shim
 
 [![Gem Version](https://badge.fury.io/rb/cisco_os_shim.svg)](http://badge.fury.io/rb/cisco_os_shim)
-[![Build Status](https://travis-ci.org/cisco/cisco-nxapi.svg?branch=develop)](https://travis-ci.org/cisco/cisco-nxapi)
+[![Build Status](https://travis-ci.org/cisco/cisco-os-shim.svg?branch=develop)](https://travis-ci.org/cisco/cisco-os-shim)
 
 The `cisco_os_shim` gem provides an abstract interface for communicating with
 Cisco network nodes running various Cisco operating systems. Currently the

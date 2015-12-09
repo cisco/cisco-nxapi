@@ -13,7 +13,7 @@ Cisco Network Elements support a rich set of features to make networks robust, e
   * Make changes in your branch.
 * Testing
   * Create a minitest for new APIs or new functionality
-  * Run all the tests to ensure there was no collateral damage to existing code
+  * Run all the tests (for all supported APIs / target platforms) to ensure there was no collateral damage to existing code
 * Committing
   * Check for unnecessary whitespace with `git diff --check` before committing.
   * Run `rubocop` against all changed files. See [https://rubygems.org/gems/rubocop](https://rubygems.org/gems/rubocop)

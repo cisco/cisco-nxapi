@@ -1,14 +1,14 @@
 # Maintainers Guide
 
-Guidelines for the core maintainers of the cisco_os_shim project - above and beyond the [general developer guidelines](https://github.com/cisco/cisco-nxapi/blob/master/CONTRIBUTING.md).
+Guidelines for the core maintainers of the cisco_os_shim project - above and beyond the [general developer guidelines](https://github.com/cisco/cisco-os-shim/blob/master/CONTRIBUTING.md).
 
 ## Accepting Pull Requests
 
 * Is the pull request correctly submitted against `develop`?
-* Does `rubocop` pass? (TODO - this will be part of our CI integration to run automatically)
+* Does [Travis-CI](https://travis-ci.org/cisco/cisco-os-shim) report successful evaluation?
 * Is `CHANGELOG.md` updated appropriately?
 * Are new minitests added? Do they provide sufficient coverage and consistent results?
-* Do minitests pass on both N9K and N3K?
+* Do minitests pass on both NX-OS and IOS XR?
 
 ## Setting up git-flow
 
@@ -68,7 +68,7 @@ When we agree as a team that a new release should be published, the process is a
     git push --tags
     ```
 
-4. Add release notes on GitHub, for example `https://github.com/cisco/cisco-nxapi/releases/new?tag=v1.0.1`. Usually this will just be a copy-and-paste of the relevant section of the `CHANGELOG.md`.
+4. Add release notes on GitHub, for example `https://github.com/cisco/cisco-os-shim/releases/new?tag=v1.0.1`. Usually this will just be a copy-and-paste of the relevant section of the `CHANGELOG.md`.
 
 5. Publish the new gem version to rubygems.org:
 

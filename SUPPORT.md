@@ -1,3 +1,3 @@
-Cisco Nxapi GEM is supported by Cisco Partners and Cisco Systems.
+The `cisco_os_shim` Gem is supported by Cisco Partners and Cisco Systems.
 
-Please report any issues with the Cisco Nxapi gem to [https://github.com/cisco/cisco-nxapi/issues](https://github.com/cisco/cisco-nxapi/issues)
+Please report any issues with this gem at [https://github.com/cisco/cisco-os-shim/issues](https://github.com/cisco/cisco-os-shim/issues)
